@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n '[?$%]' \"c:/Users/B42/Desktop/MARIO SUPER/b42-quest-aprendizagem/js/levels.js\")",
+      "Bash(node -e \"const fs = require\\('fs'\\); try { new Function\\(fs.readFileSync\\('js/game.js', 'utf8'\\)\\); console.log\\('game.js OK'\\); } catch\\(e\\) { console.log\\('game.js ERROR:', e.message\\); } try { new Function\\(fs.readFileSync\\('js/sprites.js', 'utf8'\\)\\); console.log\\('sprites.js OK'\\); } catch\\(e\\) { console.log\\('sprites.js ERROR:', e.message\\); }\")"
+    ]
+  }
+}
