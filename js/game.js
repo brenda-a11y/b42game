@@ -4015,9 +4015,11 @@ class Game {
     // Slide-in suave de cima
     const slide = (1 - fadeIn) * -6;
 
-    // Ancora acima da cabeça, clampa nas bordas da tela.
+    // Ancora bem acima da cabeça, clampa nas bordas da tela.
+    // O sprite da Brenda estende ~10px acima da hitbox (padding do PNG),
+    // então usamos 28px de folga pra não tampar o cabelo/coroa.
     let cx = Math.round(this.player.x + this.player.w/2 - this.camera.x);
-    let y  = Math.round(this.player.y - this.camera.y - h - 12) + slide;
+    let y  = Math.round(this.player.y - this.camera.y - h - 28) + slide;
     cx = Math.max(w/2 + 4, Math.min(CANVAS_W - w/2 - 4, cx));
     const x = Math.round(cx - w/2);
     if (y < 4) y = 4;
