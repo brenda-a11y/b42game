@@ -1207,10 +1207,12 @@ class Walker extends Entity {
   onPlayerContact(player, game) {
     if (this.dead || player.invincible > 0) return;
     if (player.stompCd > 0) return;
-    // Stomp = caindo e a metade de baixo da hitbox do inimigo ainda não
-    // foi ultrapassada pelos pés. Critério generoso: evita o bug em que
-    // em quedas rápidas o frame pula o "janela de 10px" e não reconhece.
-    const isStomp = (player.vy > 0) && (player.y + player.h < this.y + this.h * 0.7);
+    // Stomp = simplesmente "caindo" + "centro da personagem acima do
+    // centro do inimigo". Critério ultra-generoso: em quedas rápidas o
+    // jogador costumava overshoot e levar hit por engano (bug reportado).
+    const playerCenterY  = player.y + player.h * 0.5;
+    const enemyCenterY   = this.y + this.h * 0.5;
+    const isStomp = (player.vy >= 0) && (playerCenterY < enemyCenterY);
     if (isStomp) {
       player.vy = -260;
       player.stompCd = 0.15;
@@ -1480,8 +1482,10 @@ class Flyer extends Entity {
   onPlayerContact(player, game) {
     if (this.dead || player.invincible > 0) return;
     if (player.stompCd > 0) return;
-    // Stomp com mesma tolerância do Walker (mais generosa).
-    const isStomp = (player.vy > 0) && (player.y + player.h < this.y + this.h * 0.7);
+    // Stomp com mesma tolerância do Walker (centro a centro).
+    const playerCenterY  = player.y + player.h * 0.5;
+    const enemyCenterY   = this.y + this.h * 0.5;
+    const isStomp = (player.vy >= 0) && (playerCenterY < enemyCenterY);
     if (isStomp) {
       this.dead = true;
       player.vy = -240;
@@ -1617,8 +1621,9 @@ class BulletBill extends Entity {
   }
   onPlayerContact(player, game) {
     if (this.dead || player.invincible > 0) return;
-    // Pular em cima mata (meio injusto no Mario, mas aqui damos chance)
-    if (player.vy > 0 && player.y + player.h <= this.y + 6) {
+    // Pular em cima mata — janela generosa (centro a centro) pra evitar
+    // o bug de quedas rápidas onde jogador overshoot e tomava hit.
+    if ((player.vy >= 0) && (player.y + player.h * 0.5 < this.y + this.h * 0.5)) {
       this.dead = true;
       player.vy = -240;
       player.stompCd = 0.15;
@@ -1848,7 +1853,7 @@ class CheepCheep extends Entity {
   onPlayerContact(player, game) {
     if (this.dead || player.invincible > 0) return;
     if (!this.jumping) return; // dentro d'água não machuca
-    if (player.vy > 0 && player.y + player.h <= this.y + 6) {
+    if ((player.vy >= 0) && (player.y + player.h * 0.5 < this.y + this.h * 0.5)) {
       this.dead = true;
       player.vy = -240;
       player.stompCd = 0.15;
@@ -1945,7 +1950,7 @@ class Boss extends Entity {
   onPlayerContact(player, game) {
     if (this.dead || this.invincible > 0 || player.invincible > 0) return;
     if (player.stompCd > 0) return;
-    if (player.vy > 0 && player.y + player.h <= this.y + 24) {
+    if ((player.vy >= 0) && (player.y + player.h * 0.5 < this.y + this.h * 0.5)) {
       this.hp--;
       this.invincible = 1.1;
       player.vy = -300;
@@ -2277,15 +2282,67 @@ class Flag extends Entity {
     super(x, y, 16, 64);
     this.type = 'item';
     this.raised = false;
+    this._snapped = false;
   }
-  update() {}
+  update(dt, game) {
+    // Na primeira atualização, snapa o flag pro chão sólido logo abaixo —
+    // assim independentemente da posição do `F` no mapa, ele sempre fica
+    // fincado em cima de um bloco de terra (não flutuando nem enterrado).
+    if (!this._snapped && game && game.level) {
+      const tx = Math.floor((this.x + this.w / 2) / TILE);
+      let ty = Math.floor((this.y + this.h) / TILE);
+      // Procura pra baixo o primeiro tile sólido (chão/terra/bloco).
+      let scan = 0;
+      while (scan < 30 && !isSolidTile(game.level.getTile(tx, ty))) {
+        ty++; scan++;
+      }
+      if (scan < 30) {
+        // bottom do entity = topo do bloco de chão
+        this.y = ty * TILE - this.h;
+      }
+      this._snapped = true;
+    }
+  }
   onPlayerContact(player, game) {
     if (this.raised) return;
     this.raised = true;
     game.onLevelClear();
   }
   draw(ctx, cam) {
-    ctx.drawImage(SPR.flag, Math.round(this.x - 4 - cam.x), Math.round(this.y - cam.y));
+    const px = Math.round(this.x - cam.x);
+    const py = Math.round(this.y - cam.y);
+    // Sprite da bandeira tem 16x32. Desenha de modo que o bottom do
+    // mastro fique alinhado com o bottom do hitbox (= topo do chão).
+    const sprH = 32;
+    const sprY = py + this.h - sprH;
+
+    // ===== Pedestal de terra/grama segurando o mastro =====
+    const pedW = 22, pedH = 12;
+    const pedX = px + Math.round((this.w - pedW) / 2);
+    const pedY = py + this.h - pedH + 2; // 2px de overlap c/ tile abaixo
+    // Sombra projetada
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillRect(pedX + 2, pedY + pedH, pedW, 2);
+    // Corpo de terra (com leve gradiente)
+    ctx.fillStyle = '#5a3818';
+    ctx.fillRect(pedX, pedY + 4, pedW, pedH - 4);
+    ctx.fillStyle = '#7a4a23';
+    ctx.fillRect(pedX + 1, pedY + 5, pedW - 2, pedH - 7);
+    // Tampa de grama
+    ctx.fillStyle = '#2a8c3a';
+    ctx.fillRect(pedX, pedY, pedW, 5);
+    ctx.fillStyle = '#4ec55a';
+    ctx.fillRect(pedX + 1, pedY + 1, pedW - 2, 2);
+    ctx.fillStyle = '#7be38c';
+    ctx.fillRect(pedX + 2, pedY, 1, 1);
+    ctx.fillRect(pedX + pedW - 4, pedY, 1, 1);
+    // Borda preta pixel-art
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(pedX + 0.5, pedY + 0.5, pedW - 1, pedH - 1);
+
+    // ===== Bandeira em cima do pedestal =====
+    ctx.drawImage(SPR.flag, px - 4, sprY);
   }
 }
 
@@ -2685,7 +2742,7 @@ class MiniBoss extends Entity {
   onPlayerContact(player, game) {
     if (this.dead || this.invincible > 0 || player.invincible > 0) return;
     if (player.stompCd > 0) return;
-    if (player.vy > 0 && player.y + player.h <= this.y + 20) {
+    if ((player.vy >= 0) && (player.y + player.h * 0.5 < this.y + this.h * 0.5)) {
       this.hp--;
       this.invincible = 0.8;
       player.vy = -280;
