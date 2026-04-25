@@ -38,7 +38,7 @@ const SPRITE_IMGS = {
   load('brenda_raposa_2',   'assets/raposa+brenda/2.png');
   load('brenda_raposa_pet', 'assets/raposa+brenda/3.png');
   load('raposa_dormindo',   'assets/raposa+brenda/dormindo.png');
-  load('princesa', 'assets/Princesa.png');
+  load('princesa', 'assets/princesa.png');
 })();
 const GRAVITY    = 780;     // Mais snappy — queda responsiva
 const MAX_FALL   = 420;
