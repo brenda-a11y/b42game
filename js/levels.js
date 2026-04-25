@@ -31,7 +31,7 @@ const LEVELS = [
       'Você é <strong>{PLAYER}</strong>, e acaba de chegar ao <strong>Reino do Conhecimento</strong>. ' +
       'A <strong>Princesa Aprendizagem</strong> foi sequestrada pelo Desengajamento, e só um material ' +
       'bem feito pode resgatá-la. Comece simples: <em>corra, pule e colete Conhecimento</em>. ' +
-      'Cuidado com o <strong>Bloco Massante</strong> que anda pelo chão, e fique atento: em algum ' +
+      'Cuidado com o <strong>Bloco Maçante</strong> que anda pelo chão, e fique atento: em algum ' +
       'ponto da fase você vai encontrar a <strong>Raposa</strong>, sua primeira grande aliada. ' +
       'Pule em cima dela pra montar e ganhar velocidade.',
     lesson:
@@ -186,26 +186,26 @@ const LEVELS = [
   },
 
   // ==========================================================
-  // MUNDO 5-1 — BOSS: TEXTO MASSANTE (Biblioteca-Torre)
+  // MUNDO 5-1 — BOSS: TEXTO MAÇANTE (Biblioteca-Torre)
   // Escalada de estantes, plataformas amarelas entre os livros,
   // o mini-boss aguarda no alto da última prateleira.
   // ==========================================================
   {
     id: '5-1',
-    name: 'BIBLIOTECA DO TEXTO MASSANTE',
+    name: 'BIBLIOTECA DO TEXTO MAÇANTE',
     theme: 'castle',
     bg: 'castle',
     timeOfDay: 'dusk',
     music: 'castle',
     isBossLevel: true,
     narrative:
-      'Bem-vindo(a) à <strong>Biblioteca do Texto Massante</strong>: um labirinto vertical ' +
+      'Bem-vindo(a) à <strong>Biblioteca do Texto Maçante</strong>: um labirinto vertical ' +
       'de estantes gigantes, onde parágrafos sem fim se empilham até o teto. ' +
       'Escale os livros, pule entre as <em>prateleiras amarelas</em> (aperte <strong>↓</strong> para descer delas), ' +
       'colete as 3 armas espalhadas (Foco, Curiosidade e Método) e derrote o ' +
-      '<strong>Texto Massante</strong> no alto da torre.',
+      '<strong>Texto Maçante</strong> no alto da torre.',
     lesson:
-      'O <strong>Texto Massante</strong> caiu. Parede de texto sem respiro é o que mais afasta ' +
+      'O <strong>Texto Maçante</strong> caiu. Parede de texto sem respiro é o que mais afasta ' +
       'a Geração Z. <strong>Histórias em quadrinhos</strong> transformam conteúdo denso em ' +
       '<em>narrativa visual</em>: quem estuda deixa de apenas ler e passa a <strong>viver</strong> o conteúdo. ' +
       'A linguagem visual é a ponte entre conceito e compreensão.',

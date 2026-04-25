@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#2a1454" />
-  <title>B42 — Em busca da aprendizagem</title>
+  <title>O Resgate da Aprendizagem — Uma aventura 2D pelo Reino do Conhecimento</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -75,8 +75,7 @@
         </div>
         <div class="menu-inner">
           <div class="brand-stamp">B42 EDTECH ★ APRESENTA</div>
-          <h1 class="big-title">B42<br/><span class="small-title">EM BUSCA DA APRENDIZAGEM</span></h1>
-          <div class="subtitle">Um projeto de <strong>Brenda M.</strong> e <strong>Guilherme G. Ferreira</strong></div>
+          <h1 class="big-title">O RESGATE DA<br/>APRENDIZAGEM<br/><span class="small-title">UMA AVENTURA 2D PELO REINO DO CONHECIMENTO</span></h1>
           <div id="user-badge" class="user-badge hidden">
             <span class="user-icon">★</span> <span id="user-badge-name">JOGADOR</span>
             <button class="user-logout-btn" data-act="logout" title="Sair">✕</button>
@@ -86,10 +85,11 @@
             <button class="mbtn" data-act="select">SELECIONAR MUNDO</button>
             <button class="mbtn" data-act="controls">CONTROLES</button>
             <a href="ranking.html" class="mbtn" style="text-decoration:none;display:inline-block;text-align:center;">RANKING</a>
+            <button class="mbtn admin-only hidden" data-act="admin">★ PAINEL ADMIN</button>
             <button class="mbtn ghost" data-act="reset">RESETAR PROGRESSO</button>
           </div>
           <div class="credit">
-            Um projeto de <strong>Brenda M.</strong> &amp; <strong>Guilherme G. Ferreira</strong><br/>
+            Um projeto de <strong>Brenda M.</strong>, <strong>Bruna M.</strong> e <strong>Guilherme G.</strong><br/>
             © B42 EdTech
           </div>
         </div>
@@ -186,10 +186,11 @@
           <h2 class="big-title">A APRENDIZAGEM<br/>FOI RESGATADA!</h2>
           <div class="victory-body" id="victory-body"></div>
           <div class="dev-credits">
-            <div class="dev-credits-title">DESENVOLVIDO POR</div>
+            <div class="dev-credits-title">UM PROJETO DE</div>
             <div class="dev-row">
-              <span class="ig-tag"><span class="ig-icon">◉</span>@bre_marconato</span>
-              <span class="ig-tag"><span class="ig-icon">◉</span>@guilherme_apf___</span>
+              <span class="ig-tag"><span class="ig-icon">◉</span>Brenda M.</span>
+              <span class="ig-tag"><span class="ig-icon">◉</span>Bruna M.</span>
+              <span class="ig-tag"><span class="ig-icon">◉</span>Guilherme G.</span>
             </div>
             <div class="dev-stamp">B42 EDTECH</div>
           </div>
@@ -236,6 +237,11 @@
               <input type="email" id="reg-email" class="form-input" placeholder="seu@email.com" required />
             </div>
             <div class="form-group">
+              <label class="form-label">TELEFONE (WHATSAPP)</label>
+              <input type="tel" id="reg-phone" class="form-input" placeholder="(11) 91234-5678" maxlength="20" required />
+              <span class="form-hint">Use somente para contato relacionado ao jogo.</span>
+            </div>
+            <div class="form-group">
               <label class="form-label">SENHA</label>
               <input type="password" id="reg-pass" class="form-input" placeholder="Mínimo 4 caracteres" minlength="4" required />
             </div>
@@ -243,10 +249,96 @@
               <label class="form-label">CONFIRMAR SENHA</label>
               <input type="password" id="reg-pass2" class="form-input" placeholder="Repita a senha" required />
             </div>
+            <div class="consent-block">
+              <label class="consent-row">
+                <input type="checkbox" id="reg-consent-terms" required />
+                <span>
+                  Li e aceito os
+                  <button type="button" class="link-btn" data-act="show-terms">Termos de Uso</button>.
+                </span>
+              </label>
+              <label class="consent-row">
+                <input type="checkbox" id="reg-consent-lgpd" required />
+                <span>
+                  Autorizo o tratamento dos meus dados conforme a
+                  <button type="button" class="link-btn" data-act="show-lgpd">Política de Privacidade (LGPD)</button>.
+                </span>
+              </label>
+            </div>
             <div id="reg-error" class="form-error hidden"></div>
             <button type="submit" class="mbtn primary">► CRIAR CONTA</button>
             <button type="button" class="mbtn" data-act="show-login">JÁ TENHO CONTA</button>
           </form>
+        </div>
+      </div>
+
+      <!-- Modal: Termos de Uso -->
+      <div id="ov-terms" class="overlay hidden">
+        <div class="menu-inner terms-inner">
+          <div class="brand-stamp">B42 EDTECH</div>
+          <h2 class="title">TERMOS DE USO</h2>
+          <div class="terms-body">
+            <p><strong>1. Sobre o jogo.</strong> "O Resgate da Aprendizagem" é um jogo educativo experimental, criado pela B42 EdTech para fins demonstrativos e de pesquisa em engajamento pedagógico.</p>
+            <p><strong>2. Conta de jogador.</strong> O cadastro é opcional e serve para manter seu progresso, ranking e histórico. Você é responsável pela veracidade dos dados informados.</p>
+            <p><strong>3. Uso responsável.</strong> É proibido usar trapaças, automações, manipular o ranking ou tentar burlar os sistemas do jogo. Contas que infringirem podem ser removidas pela equipe administradora.</p>
+            <p><strong>4. Propriedade intelectual.</strong> Personagens, sprites, músicas e textos são de propriedade da B42 EdTech ou licenciados a ela. Não é permitido redistribuir o jogo sem autorização.</p>
+            <p><strong>5. Alterações.</strong> Estes termos podem ser revisados a qualquer momento. Continuar jogando após mudanças implica aceite das novas regras.</p>
+            <p><strong>6. Contato.</strong> Dúvidas, sugestões ou pedidos de remoção de conta: <em>contato@b42.com.br</em>.</p>
+          </div>
+          <button type="button" class="mbtn primary" data-act="close-modal">► ENTENDI</button>
+        </div>
+      </div>
+
+      <!-- Modal: LGPD -->
+      <div id="ov-lgpd" class="overlay hidden">
+        <div class="menu-inner terms-inner">
+          <div class="brand-stamp">B42 EDTECH</div>
+          <h2 class="title">POLÍTICA DE PRIVACIDADE (LGPD)</h2>
+          <div class="terms-body">
+            <p><strong>1. Quais dados coletamos.</strong> Nome de jogador, e-mail, telefone (WhatsApp) e estatísticas de jogo (pontuação, fases, progresso). A senha é armazenada em formato cifrado (hash SHA-256).</p>
+            <p><strong>2. Para que usamos.</strong> (a) Manter seu progresso entre sessões; (b) compor o ranking comunitário; (c) eventual contato relacionado ao jogo (anúncios de novas fases, eventos educacionais como o CIAED, pesquisas).</p>
+            <p><strong>3. Com quem compartilhamos.</strong> Os dados ficam no banco Supabase, contratado pela B42 EdTech. Não vendemos, não cedemos e não compartilhamos com terceiros para fins de marketing.</p>
+            <p><strong>4. Seus direitos.</strong> Você pode, a qualquer momento, solicitar acesso, correção, exportação ou exclusão dos seus dados — em conformidade com a Lei 13.709/2018 (LGPD), arts. 17 a 22.</p>
+            <p><strong>5. Como pedir exclusão.</strong> Envie um e-mail para <em>contato@b42.com.br</em> com o assunto "EXCLUSÃO LGPD" informando seu nome de jogador. A remoção é feita em até 7 dias úteis.</p>
+            <p><strong>6. Cookies / armazenamento local.</strong> Usamos <em>localStorage</em> do navegador para guardar seu progresso offline. Não usamos cookies de rastreamento publicitário.</p>
+            <p><strong>7. Crianças e adolescentes.</strong> Menores de 13 anos só podem se cadastrar com autorização expressa dos pais ou responsáveis, conforme art. 14 da LGPD.</p>
+            <p><strong>8. Encarregado pelo tratamento (DPO).</strong> Equipe B42 EdTech — <em>contato@b42.com.br</em>.</p>
+          </div>
+          <button type="button" class="mbtn primary" data-act="close-modal">► ENTENDI</button>
+        </div>
+      </div>
+
+      <!-- Painel Admin -->
+      <div id="ov-admin" class="overlay hidden">
+        <div class="menu-inner admin-inner">
+          <div class="brand-stamp">B42 EDTECH ★ ADMIN</div>
+          <h2 class="title">PAINEL DE ADMINISTRAÇÃO</h2>
+          <div class="admin-stats" id="admin-stats">
+            <div class="admin-stat"><span class="admin-stat-label">JOGADORES</span><span class="admin-stat-val" id="admin-total">—</span></div>
+            <div class="admin-stat"><span class="admin-stat-label">FONTE</span><span class="admin-stat-val" id="admin-source">—</span></div>
+            <div class="admin-stat"><span class="admin-stat-label">ATUALIZADO</span><span class="admin-stat-val" id="admin-updated">—</span></div>
+          </div>
+          <div class="admin-toolbar">
+            <input type="text" id="admin-search" class="form-input admin-search" placeholder="Buscar por nome ou e-mail..." />
+            <button type="button" class="mbtn ghost" data-act="admin-refresh">↻ ATUALIZAR</button>
+          </div>
+          <div class="admin-list-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>JOGADOR</th>
+                  <th>EMAIL</th>
+                  <th>TELEFONE</th>
+                  <th>FASES</th>
+                  <th>SCORE</th>
+                  <th>AÇÕES</th>
+                </tr>
+              </thead>
+              <tbody id="admin-tbody"></tbody>
+            </table>
+          </div>
+          <button type="button" class="mbtn" data-act="back">◄ VOLTAR</button>
         </div>
       </div>
 

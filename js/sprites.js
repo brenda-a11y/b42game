@@ -232,7 +232,7 @@ KPPOOOOOOOOPPK
 // INIMIGOS
 // ============================================================
 
-// Walker — "Texto Massante" (livro de texto massante com pernas)
+// Walker — "Texto Maçante" (livro de texto maçante com pernas)
 // 16 de largura por 14 de altura — livro fechado com lombada e pernas
 const ENEMY_BOOK = `
 KKKKKKKKKKKKKKKK
@@ -251,7 +251,7 @@ KKKKKKKKKKKKKKKK
 .KK..KKK..KK..KK
 `;
 
-// Walker — "Bloco Massante" (texto sem fim)
+// Walker — "Bloco Maçante" (texto sem fim)
 const ENEMY_BLOCK = `
 .KKKKKKKKKK.
 KeeeeeeeeeeK

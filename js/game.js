@@ -909,8 +909,9 @@ class Player extends Entity {
       if (!img || !img.complete || !img.naturalWidth) img = SPRITE_IMGS.brenda_raposa_1;
       if (!img || !img.complete || !img.naturalWidth) img = SPRITE_IMGS.brenda_yoshi;
       if (img && img.complete && img.naturalWidth) {
-        // Raposa menor: 72px de largura (antes 100) pra combinar com Brenda.
-        const drawW = 72;
+        // Brenda+Raposa: 60px de largura (antes 72) — sprite mais discreto e
+        // proporcional aos inimigos pra não dominar a tela.
+        const drawW = 60;
         const drawH = Math.round(drawW * (img.naturalHeight / img.naturalWidth));
         const cx = this.x + this.w / 2 - cam.x;
         let baseY = this.y + this.h - cam.y + 1;
@@ -1167,7 +1168,7 @@ class Player extends Entity {
 }
 
 // ============================================================
-// WALKER ENEMY — "Texto Massante" (livro ambulante, imagem fixa)
+// WALKER ENEMY — "Texto Maçante" (livro ambulante, imagem fixa)
 // ============================================================
 class Walker extends Entity {
   constructor(x, y) {
@@ -1253,9 +1254,9 @@ class Walker extends Entity {
       ctx.drawImage(this.facing > 0 ? SPR.enemyBook : SPR.enemyBookL,
                     Math.round(this.x - cam.x), Math.round(this.y - cam.y));
     }
-    // Label "TEXTO MASSANTE" só na fase 1-1 (tutorial).
+    // Label "TEXTO MAÇANTE" só na fase 1-1 (tutorial).
     if (game && game.level && game.level.id === '1-1') {
-      drawEnemyLabel(ctx, 'TEXTO MASSANTE', px + tw/2, py - 3, '#ff5050');
+      drawEnemyLabel(ctx, 'TEXTO MAÇANTE', px + tw/2, py - 3, '#ff5050');
     }
   }
 }
@@ -2906,13 +2907,14 @@ class Mount extends Entity {
       const now = performance.now() / 1000;
       // Respiração: largura pulsa suavemente; altura fixa pra não descolar do chão.
       const breathe = 1 + Math.sin(now * 1.9) * 0.05;
-      const baseW = 72; // maior (antes 56)
+      const baseW = 48; // menor — raposa enrolada dorme compacta
       const drawW = Math.round(baseW * breathe);
       const baseH = Math.round(baseW * (sleepImg.naturalHeight / sleepImg.naturalWidth));
       const drawH = baseH;
       const drawX = Math.round(cx - drawW / 2);
-      // Cola na linha do chão (topo do tile de grama).
-      const drawY = Math.round(py + this.h - drawH);
+      // Cola FORTE no chão: o sprite tem padding transparente em baixo,
+      // então empurra +6px pra ela tocar a grama de fato.
+      const drawY = Math.round(py + this.h - drawH) + 6;
       ctx.imageSmoothingEnabled = false;
       if (dir < 0) {
         ctx.save();
@@ -3265,7 +3267,7 @@ class Game {
       case 'weapon_focus':     this.entities.push(new WeaponPickup(sp.x, sp.y, 'focus')); break;
       case 'weapon_curiosity': this.entities.push(new WeaponPickup(sp.x, sp.y, 'curiosity')); break;
       case 'weapon_method':    this.entities.push(new WeaponPickup(sp.x, sp.y, 'method')); break;
-      case 'miniboss_texto':  this.entities.push(new MiniBoss(sp.x, sp.y, 'TEXTO MASSANTE', 4)); break;
+      case 'miniboss_texto':  this.entities.push(new MiniBoss(sp.x, sp.y, 'TEXTO MAÇANTE', 4)); break;
       case 'miniboss_desmot': this.entities.push(new MiniBoss(sp.x, sp.y, 'DESMOTIVAÇÃO', 5)); break;
       case 'flag':   this.entities.push(new Flag(sp.x, sp.y)); break;
       case 'mount':  this.entities.push(new Mount(sp.x, sp.y)); break;
@@ -3657,7 +3659,7 @@ class Game {
         {
           speaker: 'PRINCESA APRENDIZAGEM',
           text:
-            'Ah, ' + _playerName + '... você conseguiu. Passou pelo Texto Massante, ' +
+            'Ah, ' + _playerName + '... você conseguiu. Passou pelo Texto Maçante, ' +
             'pela Desmotivação e até pelo Desengajamento. E continuou.<br/><br/>' +
             '<em>Obrigada por vir me buscar.</em>'
         },
@@ -3680,7 +3682,7 @@ class Game {
         {
           speaker: _playerName.toUpperCase(),
           text:
-            '★ Então é isso que vocês fazem? Pegar o que seria massante... ' +
+            '★ Então é isso que vocês fazem? Pegar o que seria maçante... ' +
             'e transformar em <strong>quest</strong>?<br/><br/>' +
             'Tô dentro. Te vejo no <strong>CIAED 2026</strong>, Princesa!'
         },
@@ -3985,10 +3987,10 @@ class Game {
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    // Se o texto for longo, quebra em duas linhas.
-    ctx.font = '12px "VT323", monospace';
+    // Se o texto for longo, quebra em até 3 linhas (balão menor).
+    ctx.font = '10px "VT323", monospace';
     ctx.textBaseline = 'middle';
-    const maxW = 210;
+    const maxW = 150;
     const words = sb.text.split(' ');
     const lines = [];
     let cur = '';
@@ -4003,10 +4005,10 @@ class Game {
     }
     if (cur) lines.push(cur);
 
-    const padX = 10, padY = 6;
-    const lineH = 13;
+    const padX = 7, padY = 4;
+    const lineH = 11;
     const textW = Math.max(...lines.map(l => ctx.measureText(l).width));
-    const iconW = 14; // espaço pra estrelinha à esquerda
+    const iconW = 11; // espaço pra estrelinha à esquerda
     const w = Math.min(maxW + iconW + padX * 2, Math.ceil(textW) + iconW + padX * 2);
     const h = padY * 2 + lines.length * lineH;
 
@@ -4015,7 +4017,7 @@ class Game {
 
     // Ancora acima da cabeça, clampa nas bordas da tela.
     let cx = Math.round(this.player.x + this.player.w/2 - this.camera.x);
-    let y  = Math.round(this.player.y - this.camera.y - h - 16) + slide;
+    let y  = Math.round(this.player.y - this.camera.y - h - 12) + slide;
     cx = Math.max(w/2 + 4, Math.min(CANVAS_W - w/2 - 4, cx));
     const x = Math.round(cx - w/2);
     if (y < 4) y = 4;
@@ -4050,7 +4052,7 @@ class Game {
     // ===== Estrelinha à esquerda =====
     const starCX = x + padX;
     const starCY = y + h/2;
-    const R = 5, r = R * 0.45;
+    const R = 4, r = R * 0.45;
     ctx.beginPath();
     for (let i = 0; i < 10; i++) {
       const a = -Math.PI/2 + i * Math.PI/5;
@@ -4076,18 +4078,18 @@ class Game {
 
     // ===== Setinha apontando pra Brenda (triângulo dourado com borda) =====
     ctx.beginPath();
-    ctx.moveTo(cx - 6, y + h - 1);
-    ctx.lineTo(cx + 6, y + h - 1);
-    ctx.lineTo(cx, y + h + 6);
+    ctx.moveTo(cx - 4, y + h - 1);
+    ctx.lineTo(cx + 4, y + h - 1);
+    ctx.lineTo(cx, y + h + 4);
     ctx.closePath();
     ctx.fillStyle = '#f0d98a';
     ctx.fill();
     ctx.strokeStyle = '#caa23b';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(cx - 6, y + h - 1);
-    ctx.lineTo(cx, y + h + 6);
-    ctx.lineTo(cx + 6, y + h - 1);
+    ctx.moveTo(cx - 4, y + h - 1);
+    ctx.lineTo(cx, y + h + 4);
+    ctx.lineTo(cx + 4, y + h - 1);
     ctx.stroke();
 
     ctx.restore();
@@ -4901,7 +4903,7 @@ function hide(id) {
   if (el) el.classList.add('hidden');
 }
 function hideAll() {
-  ['ov-menu','ov-select','ov-controls','ov-dialog','ov-princess','ov-pause','ov-gameover','ov-complete','ov-victory','ov-login','ov-register','ov-b42ad']
+  ['ov-menu','ov-select','ov-controls','ov-dialog','ov-princess','ov-pause','ov-gameover','ov-complete','ov-victory','ov-login','ov-register','ov-b42ad','ov-admin','ov-terms','ov-lgpd']
     .forEach(hide);
 }
 
@@ -4982,6 +4984,11 @@ function boot() {
     } else {
       badge.classList.add('hidden');
     }
+    // Botões "admin-only" só aparecem se o usuário logado for admin.
+    const isAdmin = UserSystem.isCurrentUserAdmin && UserSystem.isCurrentUserAdmin();
+    document.querySelectorAll('.admin-only').forEach(el => {
+      el.classList.toggle('hidden', !isAdmin);
+    });
   }
 
   function showAuthOrMenu() {
@@ -5048,18 +5055,25 @@ function boot() {
       e.preventDefault();
       const name = document.getElementById('reg-name').value;
       const email = document.getElementById('reg-email').value;
+      const phone = (document.getElementById('reg-phone') || {}).value || '';
       const pass = document.getElementById('reg-pass').value;
       const pass2 = document.getElementById('reg-pass2').value;
+      const acceptedTerms = !!(document.getElementById('reg-consent-terms') || {}).checked;
+      const acceptedLGPD  = !!(document.getElementById('reg-consent-lgpd')  || {}).checked;
       const errEl = document.getElementById('reg-error');
 
-      const errors = UserSystem.validateRegistration(name, email, pass, pass2);
+      const errors = UserSystem.validateRegistration(name, email, pass, pass2, {
+        phone, acceptedTerms, acceptedLGPD,
+      });
       if (errors.length > 0) {
         errEl.innerHTML = errors.join('<br>');
         errEl.classList.remove('hidden');
         return;
       }
 
-      UserSystem.registerUser(name, email, pass);
+      UserSystem.registerUser(name, email, pass, {
+        phone, acceptedTerms, acceptedLGPD,
+      });
       UserSystem.login(name, pass);
       AUDIO.init();
       AUDIO.click();
@@ -5132,9 +5146,120 @@ function boot() {
         case 'next':
           game.nextLevel();
           break;
+        case 'show-terms':
+          show('ov-terms');
+          break;
+        case 'show-lgpd':
+          show('ov-lgpd');
+          break;
+        case 'close-modal':
+          hide('ov-terms'); hide('ov-lgpd');
+          break;
+        case 'admin':
+          if (!UserSystem.isCurrentUserAdmin()) {
+            alert('Apenas administradores podem acessar este painel.');
+            return;
+          }
+          hideAll(); show('ov-admin');
+          renderAdminPanel();
+          break;
+        case 'admin-refresh':
+          renderAdminPanel();
+          break;
       }
     });
   });
+
+  // ============================================================
+  // Painel Admin — render + ações (delete)
+  // ============================================================
+  async function renderAdminPanel() {
+    const tbody = document.getElementById('admin-tbody');
+    const totalEl = document.getElementById('admin-total');
+    const sourceEl = document.getElementById('admin-source');
+    const updatedEl = document.getElementById('admin-updated');
+    const search = (document.getElementById('admin-search') || {}).value || '';
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;padding:14px;">Carregando...</td></tr>';
+    let result;
+    try {
+      result = await UserSystem.adminListAllUsers();
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#ff5050;padding:14px;">Erro: ' + (e && e.message || e) + '</td></tr>';
+      return;
+    }
+    const items = (result.items || []).filter(u => {
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (u.playerName || '').toLowerCase().includes(q)
+          || (u.email || '').toLowerCase().includes(q)
+          || (u.phone || '').toLowerCase().includes(q);
+    });
+    totalEl.textContent = items.length;
+    sourceEl.textContent = result.source === 'supabase' ? 'NUVEM' : 'LOCAL';
+    updatedEl.textContent = new Date().toLocaleTimeString('pt-BR');
+
+    if (items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;padding:14px;">Nenhum jogador encontrado.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = items.map((u, i) => {
+      const tag = u.isAdmin ? '<span class="admin-tag">ADMIN</span>' : '';
+      const consentMark = u.acceptedLGPD ? '✓' : '—';
+      const phone = u.phone ? _formatPhoneBR(u.phone) : '—';
+      return `
+        <tr data-pname="${_escHtml(u.playerName)}">
+          <td>${i + 1}</td>
+          <td><strong>${_escHtml(u.playerName)}</strong> ${tag}<br/><span class="admin-meta">${consentMark} LGPD</span></td>
+          <td>${_escHtml(u.email || '—')}</td>
+          <td>${phone}</td>
+          <td>${u.levelsCompleted}/5</td>
+          <td>${u.bestScore}</td>
+          <td>
+            <button class="admin-btn-del" data-pname="${_escHtml(u.playerName)}" title="Excluir jogador">✕</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.querySelectorAll('.admin-btn-del').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const pname = btn.getAttribute('data-pname');
+        if (!confirm('Excluir definitivamente o jogador "' + pname + '"? Esta ação é IRREVERSÍVEL.')) return;
+        btn.disabled = true;
+        const r = await UserSystem.adminDeleteUser(pname);
+        if (r.ok) {
+          renderAdminPanel();
+        } else {
+          alert('Erro ao excluir: ' + (r.error || 'desconhecido'));
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  // Filtro em tempo real do admin search
+  const adminSearch = document.getElementById('admin-search');
+  if (adminSearch) {
+    let _t = null;
+    adminSearch.addEventListener('input', () => {
+      clearTimeout(_t);
+      _t = setTimeout(renderAdminPanel, 200);
+    });
+  }
+
+  function _escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function _formatPhoneBR(digits) {
+    const d = String(digits || '').replace(/\D/g, '');
+    if (d.length === 11) return '(' + d.slice(0,2) + ') ' + d.slice(2,7) + '-' + d.slice(7);
+    if (d.length === 10) return '(' + d.slice(0,2) + ') ' + d.slice(2,6) + '-' + d.slice(6);
+    return d;
+  }
 
   // Sound badge click (desktop)
   const sb = document.getElementById('sound-badge');

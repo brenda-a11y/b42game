@@ -21,6 +21,18 @@ const RANKING_CACHE_KEY = 'b42-quest-ranking-cache';
 const HAS_SB = !!global.SB_CLIENT;
 const sb = global.SB_CLIENT || null;
 
+// E-mails com privilégio de admin. Pode ser sobrescrito por
+// window.__B42_ADMIN_EMAILS antes de users.js carregar.
+const ADMIN_EMAILS = (global.__B42_ADMIN_EMAILS || [
+  'thayla@b42.com.br',
+  'brendamarconato1704@gmail.com',
+  'admin@b42.com.br',
+]).map(e => e.toLowerCase());
+
+function isAdminEmail(email) {
+  return !!email && ADMIN_EMAILS.includes(String(email).toLowerCase());
+}
+
 // ============================================================
 // localStorage helpers (baseline / fallback)
 // ============================================================
@@ -63,7 +75,15 @@ async function sha256Hex(str) {
 // ============================================================
 // Validações (100% locais — o banco valida por constraints também)
 // ============================================================
-function validateRegistration(playerName, email, password, confirmPassword) {
+function _normalizePhone(phone) {
+  return String(phone || '').replace(/\D/g, '');
+}
+
+function validateRegistration(playerName, email, password, confirmPassword, opts) {
+  opts = opts || {};
+  const phone = opts.phone;
+  const acceptedTerms = !!opts.acceptedTerms;
+  const acceptedLGPD  = !!opts.acceptedLGPD;
   const errors = [];
 
   if (!playerName || playerName.trim().length < 3) {
@@ -86,11 +106,24 @@ function validateRegistration(playerName, email, password, confirmPassword) {
     errors.push('Este e-mail já está cadastrado.');
   }
 
+  // Telefone: 10 ou 11 dígitos (com DDD). Aceita formatos com (), -, espaços.
+  const digits = _normalizePhone(phone);
+  if (!digits || digits.length < 10 || digits.length > 13) {
+    errors.push('Informe um telefone válido com DDD (10 ou 11 dígitos).');
+  }
+
   if (!password || password.length < 4) {
     errors.push('Senha deve ter pelo menos 4 caracteres.');
   }
   if (password !== confirmPassword) {
     errors.push('As senhas não conferem.');
+  }
+
+  if (!acceptedTerms) {
+    errors.push('Você precisa aceitar os Termos de Uso para continuar.');
+  }
+  if (!acceptedLGPD) {
+    errors.push('Você precisa autorizar o tratamento dos dados (LGPD).');
   }
 
   return errors;
@@ -99,18 +132,26 @@ function validateRegistration(playerName, email, password, confirmPassword) {
 // ============================================================
 // Registro — sempre grava no local E, se online, também no Supabase.
 // ============================================================
-function registerUser(playerName, email, password) {
+function registerUser(playerName, email, password, opts) {
+  opts = opts || {};
   const users = getUsers();
+  const phoneDigits = _normalizePhone(opts.phone);
+  const nowIso = new Date().toISOString();
   const user = {
     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
     playerName: playerName.trim(),
     email: email.trim().toLowerCase(),
+    phone: phoneDigits,
     passwordHash: simpleHash(password),
-    createdAt: new Date().toISOString(),
+    createdAt: nowIso,
     bestScore: 0,
     totalCoins: 0,
     totalKills: 0,
     levelsCompleted: 0,
+    acceptedTerms: !!opts.acceptedTerms,
+    acceptedLGPD:  !!opts.acceptedLGPD,
+    consentAt:     nowIso,
+    isAdmin:       isAdminEmail(email),
   };
   users.push(user);
   saveUsers(users);
@@ -119,15 +160,40 @@ function registerUser(playerName, email, password) {
     // Fire-and-forget: o front continua sem esperar.
     sha256Hex(password).then(async (hashHex) => {
       try {
-        const { error } = await sb.from('players').insert({
-          player_name: user.playerName,
-          email: user.email,
-          password_hash: hashHex,
-          best_score: 0,
-          total_coins: 0,
-          total_kills: 0,
+        // Tenta inserir com os novos campos. Se a tabela ainda não tem as
+        // colunas (banco antigo), faz fallback inserindo apenas o essencial.
+        const fullPayload = {
+          player_name:     user.playerName,
+          email:           user.email,
+          phone:           phoneDigits,
+          password_hash:   hashHex,
+          best_score:      0,
+          total_coins:     0,
+          total_kills:     0,
           levels_completed: 0,
-        });
+          accepted_terms:  user.acceptedTerms,
+          accepted_lgpd:   user.acceptedLGPD,
+          consent_at:      nowIso,
+          is_admin:        user.isAdmin,
+        };
+        let { error } = await sb.from('players').insert(fullPayload);
+        if (error && /column .* does not exist|schema cache/i.test(String(error.message || ''))) {
+          // Banco antigo sem as colunas novas — insere só os campos que ele conhece.
+          const minimal = {
+            player_name:    user.playerName,
+            email:          user.email,
+            password_hash:  hashHex,
+            best_score:     0,
+            total_coins:    0,
+            total_kills:    0,
+            levels_completed: 0,
+          };
+          const fb = await sb.from('players').insert(minimal);
+          error = fb.error;
+          if (!error) {
+            console.info('[B42] cadastro feito (sem telefone/consent — rode o ALTER TABLE pra habilitar).');
+          }
+        }
         if (error && !String(error.message || '').match(/duplicate|unique/i)) {
           console.warn('[B42] register remote falhou:', error.message);
         }
@@ -178,12 +244,16 @@ async function _tryRemoteLogin(playerName, password) {
         id: data.id,
         playerName: data.player_name,
         email: data.email,
+        phone: data.phone || '',
         passwordHash: simpleHash(password), // alinha com o formato local
         createdAt: data.created_at,
         bestScore: data.best_score || 0,
         totalCoins: data.total_coins || 0,
         totalKills: data.total_kills || 0,
         levelsCompleted: data.levels_completed || 0,
+        acceptedTerms: !!data.accepted_terms,
+        acceptedLGPD:  !!data.accepted_lgpd,
+        isAdmin: !!data.is_admin || isAdminEmail(data.email),
       });
       saveUsers(users);
     }
@@ -344,6 +414,102 @@ async function getRankingAsync() {
 }
 
 // ============================================================
+// ADMIN — listagem completa e gerenciamento de jogadores
+// Acesso restrito: o front só chama estas funções se o usuário
+// logado for admin (isAdminEmail). RLS no Supabase ainda governa
+// quem pode ler/deletar de fato.
+// ============================================================
+function isCurrentUserAdmin() {
+  const u = getCurrentUser();
+  if (!u) return false;
+  return !!u.isAdmin || isAdminEmail(u.email);
+}
+
+async function adminListAllUsers() {
+  // Busca lista mais completa possível: tenta Supabase primeiro,
+  // cai pro localStorage se offline ou bloqueado.
+  if (HAS_SB) {
+    try {
+      const { data, error } = await sb
+        .from('players')
+        .select('id, player_name, email, phone, best_score, total_coins, total_kills, levels_completed, created_at, last_played_at, accepted_terms, accepted_lgpd, consent_at, is_admin')
+        .order('created_at', { ascending: false })
+        .limit(500);
+      if (error) {
+        // Tabela pode não ter as colunas novas — refaz com select mínimo.
+        if (/column .* does not exist|schema cache/i.test(String(error.message || ''))) {
+          const fb = await sb.from('players')
+            .select('id, player_name, email, best_score, total_coins, total_kills, levels_completed, created_at, last_played_at')
+            .order('created_at', { ascending: false })
+            .limit(500);
+          if (!fb.error) {
+            return { source: 'supabase', items: (fb.data || []).map(_mapRow) };
+          }
+        }
+        throw error;
+      }
+      return { source: 'supabase', items: (data || []).map(_mapRow) };
+    } catch (e) {
+      console.warn('[B42] admin list remoto falhou — usando local:', e);
+    }
+  }
+  return {
+    source: 'local',
+    items: getUsers().map(u => ({
+      id: u.id,
+      playerName: u.playerName,
+      email: u.email,
+      phone: u.phone || '',
+      bestScore: u.bestScore || 0,
+      totalCoins: u.totalCoins || 0,
+      totalKills: u.totalKills || 0,
+      levelsCompleted: u.levelsCompleted || 0,
+      createdAt: u.createdAt,
+      lastPlayedAt: u.lastPlayedAt,
+      acceptedTerms: !!u.acceptedTerms,
+      acceptedLGPD:  !!u.acceptedLGPD,
+      isAdmin:       !!u.isAdmin,
+    })),
+  };
+}
+
+function _mapRow(r) {
+  return {
+    id: r.id,
+    playerName: r.player_name,
+    email: r.email,
+    phone: r.phone || '',
+    bestScore: r.best_score || 0,
+    totalCoins: r.total_coins || 0,
+    totalKills: r.total_kills || 0,
+    levelsCompleted: r.levels_completed || 0,
+    createdAt: r.created_at,
+    lastPlayedAt: r.last_played_at,
+    acceptedTerms: !!r.accepted_terms,
+    acceptedLGPD:  !!r.accepted_lgpd,
+    consentAt:     r.consent_at,
+    isAdmin:       !!r.is_admin,
+  };
+}
+
+async function adminDeleteUser(playerName) {
+  if (!playerName) return { ok: false, error: 'Nome obrigatório.' };
+  // Local
+  const users = getUsers().filter(u => u.playerName.toLowerCase() !== String(playerName).toLowerCase());
+  saveUsers(users);
+  // Remoto
+  if (HAS_SB) {
+    try {
+      const { error } = await sb.from('players').delete().eq('player_name', playerName);
+      if (error) return { ok: false, error: error.message, localOk: true };
+    } catch (e) {
+      return { ok: false, error: String(e), localOk: true };
+    }
+  }
+  return { ok: true };
+}
+
+// ============================================================
 // API global
 // ============================================================
 global.UserSystem = {
@@ -358,6 +524,10 @@ global.UserSystem = {
   getRanking,
   getRankingAsync,
   getUsers,
+  // Admin:
+  isCurrentUserAdmin,
+  adminListAllUsers,
+  adminDeleteUser,
   // Info pro HUD/debug:
   isRemoteEnabled: () => HAS_SB,
 };

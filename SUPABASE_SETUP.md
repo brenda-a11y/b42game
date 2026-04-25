@@ -27,13 +27,18 @@ create table if not exists public.players (
   id uuid primary key default gen_random_uuid(),
   player_name text unique not null,
   email text unique not null,
+  phone text,
   password_hash text not null,
   created_at timestamptz default now(),
   last_played_at timestamptz,
   best_score integer default 0,
   total_coins integer default 0,
   total_kills integer default 0,
-  levels_completed integer default 0
+  levels_completed integer default 0,
+  accepted_terms boolean default false,
+  accepted_lgpd boolean default false,
+  consent_at timestamptz,
+  is_admin boolean default false
 );
 
 -- Índice pro ranking ordenar rápido
@@ -42,6 +47,22 @@ create index if not exists idx_players_ranking
 ```
 
 Clique em **Run**. Deve concluir sem erro.
+
+### 1b) Banco já existente? Rode esta migração
+
+Se a tabela `players` já foi criada antes, adicione as colunas novas:
+
+```sql
+alter table public.players add column if not exists phone text;
+alter table public.players add column if not exists accepted_terms boolean default false;
+alter table public.players add column if not exists accepted_lgpd boolean default false;
+alter table public.players add column if not exists consent_at timestamptz;
+alter table public.players add column if not exists is_admin boolean default false;
+alter table public.players add column if not exists levels_completed integer default 0;
+
+-- Recarrega o cache de schema do PostgREST
+notify pgrst, 'reload schema';
+```
 
 ---
 
