@@ -16,37 +16,40 @@
     <div id="canvas-wrap">
       <canvas id="game" width="480" height="270" tabindex="0"></canvas>
 
+      <!-- Botão de tela cheia (só PC) -->
+      <button id="fullscreen-btn" title="Tela cheia (F11)" aria-label="Tela cheia">⛶</button>
+
       <!-- HUD sobreposto ao canvas -->
       <div id="hud" class="hidden">
         <div class="hud-group">
           <div class="hud-block">
-            <span class="hud-label">⚔ HEROÍNA</span>
+            <span class="hud-label" data-i18n="hud.heroine">⚔ HEROÍNA</span>
             <span id="hud-score" class="hud-val">000000</span>
           </div>
           <div class="hud-block">
-            <span class="hud-label"><i class="mini-coin"></i>&nbsp;CONHECIMENTO</span>
+            <span class="hud-label"><i class="mini-coin"></i>&nbsp;<span data-i18n="hud.knowledge">CONHECIMENTO</span></span>
             <span id="hud-coins" class="hud-val">× 00</span>
           </div>
         </div>
         <div class="hud-group hud-center">
           <div class="hud-block">
-            <span class="hud-label">REINO</span>
+            <span class="hud-label" data-i18n="hud.world">REINO</span>
             <span id="hud-world" class="hud-val">1-1</span>
           </div>
           <div class="hud-block hud-energy-wrap">
-            <span class="hud-label">VIGOR</span>
+            <span class="hud-label" data-i18n="hud.energy">VIGOR</span>
             <div class="hud-energy"><div id="hud-energy-fill"></div></div>
           </div>
         </div>
         <div class="hud-group hud-right">
           <div class="hud-block">
-            <span class="hud-label">VIDAS</span>
+            <span class="hud-label" data-i18n="hud.lives">VIDAS</span>
             <div id="hud-hearts" class="hud-hearts">
               <span class="heart">❤</span><span class="heart">❤</span><span class="heart">❤</span>
             </div>
           </div>
           <div class="hud-block">
-            <span class="hud-label">ARTEFATO</span>
+            <span class="hud-label" data-i18n="hud.power">ARTEFATO</span>
             <span id="hud-power" class="hud-val"></span>
           </div>
         </div>
@@ -74,31 +77,43 @@
           <span class="floater crown">♛</span>
         </div>
         <div class="menu-inner">
-          <div class="brand-stamp">B42 EDTECH ⚔ APRESENTA</div>
-          <h1 class="big-title">O RESGATE DA<br/>APRENDIZAGEM<br/><span class="small-title">UMA AVENTURA 2D PELO REINO DO CONHECIMENTO</span></h1>
+          <div class="brand-stamp" data-i18n="menu.brand">B42 EDTECH ⚔ APRESENTA</div>
+          <h1 class="big-title">O RESGATE DA<br/>APRENDIZAGEM<br/><span class="small-title" data-i18n="menu.subtitle">UMA AVENTURA 2D PELO REINO DO CONHECIMENTO</span></h1>
           <div id="user-badge" class="user-badge hidden">
             <span class="user-icon">♛</span> <span id="user-badge-name">CAVALEIRA</span>
             <button class="user-logout-btn" data-act="logout" title="Sair">✕</button>
           </div>
           <div class="menu-actions">
-            <button class="mbtn primary" data-act="start">⚔ INICIAR JORNADA</button>
-            <button class="mbtn" data-act="select">ESCOLHER REINO</button>
-            <button class="mbtn" data-act="controls">GUIA DO HERÓI</button>
+            <button class="mbtn primary" data-act="start" data-i18n="menu.start">⚔ INICIAR JORNADA</button>
+            <button class="mbtn" data-act="select" data-i18n="menu.select">ESCOLHER REINO</button>
+            <button class="mbtn" data-act="controls" data-i18n="menu.controls">GUIA DO HERÓI</button>
             <a href="ranking.html" class="mbtn" style="text-decoration:none;display:inline-block;text-align:center;" data-i18n="menu.ranking">RANKING</a>
-            <button class="mbtn admin-only hidden" data-act="admin">♛ CÂMARA REAL</button>
-            <button class="mbtn ghost" data-act="reset">REFAZER A JORNADA</button>
+            <button class="mbtn admin-only hidden" data-act="admin" data-i18n="menu.admin">♛ CÂMARA REAL</button>
+            <button class="mbtn ghost" data-act="reset" data-i18n="menu.reset">REFAZER A JORNADA</button>
+            <button class="mbtn ghost" data-act="lang">🌐 IDIOMA / LANGUAGE</button>
           </div>
           <div class="credit">
-            Forjado por <strong>Brenda M.</strong>, <strong>Bruna M.</strong> e <strong>Guilherme G.</strong><br/>
+            <span data-i18n="menu.credit">Forjado por</span> <strong>Brenda M.</strong>, <strong>Bruna M.</strong> e <strong>Guilherme G.</strong><br/>
             ⚜ B42 EdTech ⚜
           </div>
+        </div>
+      </div>
+
+      <!-- Seleção de Idioma -->
+      <div id="ov-lang" class="overlay hidden">
+        <div class="menu-inner lang-inner">
+          <div class="brand-stamp">⚜ B42 EDTECH ⚜</div>
+          <h2 class="title" data-i18n="lang.title">ESCOLHA O IDIOMA</h2>
+          <p class="subtitle" data-i18n="lang.subtitle">Selecione seu idioma para começar a jornada</p>
+          <div id="lang-grid" class="lang-grid"></div>
+          <button class="mbtn primary" id="lang-confirm" data-i18n="lang.confirm">► CONFIRMAR</button>
         </div>
       </div>
 
       <!-- Controles -->
       <div id="ov-controls" class="overlay hidden">
         <div class="menu-inner">
-          <h2 class="title">⚔ GUIA DO HERÓI ⚔</h2>
+          <h2 class="title" data-i18n="controls.title">⚔ GUIA DO HERÓI ⚔</h2>
           <table class="ctl-table">
             <tr><td>← →</td><td>ou A/D</td><td>Andar</td></tr>
             <tr><td>↑</td><td>ou W / Espaço</td><td>Pular (até 2 pulos no ar, pulo triplo!)</td></tr>
@@ -111,17 +126,17 @@
             <tr><td>P</td><td>ou ESC</td><td>Pausar</td></tr>
             <tr><td>M</td><td></td><td>Ligar/desligar som</td></tr>
           </table>
-          <button class="mbtn" data-act="back">◄ VOLTAR</button>
+          <button class="mbtn" data-act="back" data-i18n="controls.back">◄ VOLTAR</button>
         </div>
       </div>
 
       <!-- Seleção de Mundo -->
       <div id="ov-select" class="overlay hidden">
         <div class="menu-inner">
-          <h2 class="title">♛ ESCOLHER REINO ♛</h2>
+          <h2 class="title" data-i18n="select.title">♛ ESCOLHER REINO ♛</h2>
           <div id="level-grid"></div>
-          <div class="hint">Reinos selados se abrem conforme você avança na jornada.</div>
-          <button class="mbtn" data-act="back">◄ VOLTAR</button>
+          <div class="hint" data-i18n="select.hint">Reinos selados se abrem conforme você avança na jornada.</div>
+          <button class="mbtn" data-act="back" data-i18n="controls.back">◄ VOLTAR</button>
         </div>
       </div>
 
@@ -135,47 +150,54 @@
         </div>
       </div>
 
-      <!-- Diálogo da Princesa (encontro final) -->
-      <div id="ov-princess" class="overlay dialog hidden">
-        <div class="dialog-inner">
-          <div class="dialog-title" id="princess-title">★ PRINCESA APRENDIZAGEM ★</div>
-          <div class="dialog-subtitle" id="princess-speaker">PRINCESA</div>
-          <div class="dialog-body" id="princess-body"></div>
-          <div class="press-any">&gt; TOQUE OU PRESSIONE ENTER PRA CONTINUAR</div>
+      <!-- Diálogo da Princesa (encontro final) — estilo Pokémon Fire Red -->
+      <div id="ov-princess" class="overlay hidden">
+        <div class="credits-stage">
+          <div class="credits-bg" aria-hidden="true">
+            <div class="credits-stars"></div>
+          </div>
+          <div class="credits-portrait-wrap">
+            <div class="credits-portrait" id="princess-portrait"></div>
+            <div class="credits-portrait-name" id="princess-speaker">PRINCESA</div>
+          </div>
+          <div class="credits-box">
+            <div class="credits-text" id="princess-body"></div>
+            <div class="credits-arrow">▼</div>
+          </div>
         </div>
       </div>
 
       <!-- Pause -->
       <div id="ov-pause" class="overlay hidden">
         <div class="menu-inner">
-          <h2 class="title">⌛ JORNADA PAUSADA</h2>
-          <button class="mbtn primary" data-act="resume">RETOMAR</button>
-          <button class="mbtn" data-act="restart">RECOMEÇAR REINO</button>
-          <button class="mbtn" data-act="menu">SALÃO PRINCIPAL</button>
+          <h2 class="title" data-i18n="pause.title">⌛ JORNADA PAUSADA</h2>
+          <button class="mbtn primary" data-act="resume" data-i18n="pause.resume">RETOMAR</button>
+          <button class="mbtn" data-act="restart" data-i18n="pause.restart">RECOMEÇAR REINO</button>
+          <button class="mbtn" data-act="menu" data-i18n="pause.menu">SALÃO PRINCIPAL</button>
         </div>
       </div>
 
       <!-- Game Over -->
       <div id="ov-gameover" class="overlay hidden">
         <div class="menu-inner">
-          <h2 class="title danger">✝ TOMBASTE EM BATALHA ✝</h2>
+          <h2 class="title danger" data-i18n="gameover.title">✝ TOMBASTE EM BATALHA ✝</h2>
           <div class="stats">
-            <div>HONRA: <span id="go-score">0</span></div>
-            <div>CONHECIMENTO: <span id="go-coins">0</span></div>
+            <div><span data-i18n="gameover.score">HONRA</span>: <span id="go-score">0</span></div>
+            <div><span data-i18n="gameover.coins">CONHECIMENTO</span>: <span id="go-coins">0</span></div>
           </div>
-          <button class="mbtn primary" data-act="retry">⚔ REERGUER A ESPADA</button>
-          <button class="mbtn" data-act="menu">SALÃO PRINCIPAL</button>
+          <button class="mbtn primary" data-act="retry" data-i18n="gameover.retry">⚔ REERGUER A ESPADA</button>
+          <button class="mbtn" data-act="menu" data-i18n="gameover.menu">SALÃO PRINCIPAL</button>
         </div>
       </div>
 
       <!-- Level Complete -->
       <div id="ov-complete" class="overlay hidden">
         <div class="menu-inner">
-          <h2 class="title victory">♛ REINO LIBERTADO! ♛</h2>
+          <h2 class="title victory" data-i18n="complete.title">♛ REINO LIBERTADO! ♛</h2>
           <div class="stats" id="complete-stats"></div>
           <div class="lesson" id="complete-lesson"></div>
-          <button class="mbtn primary" data-act="next">PRÓXIMO REINO ►</button>
-          <button class="mbtn" data-act="menu">SALÃO PRINCIPAL</button>
+          <button class="mbtn primary" data-act="next" data-i18n="complete.next">PRÓXIMO REINO ►</button>
+          <button class="mbtn" data-act="menu" data-i18n="complete.menu">SALÃO PRINCIPAL</button>
         </div>
       </div>
 
@@ -203,20 +225,20 @@
       <div id="ov-login" class="overlay hidden">
         <div class="menu-inner">
           <div class="brand-stamp">⚜ B42 EDTECH ⚜</div>
-          <h2 class="title">⚔ ENTRAR NO REINO</h2>
+          <h2 class="title" data-i18n="auth.login.title">⚔ ENTRAR NO REINO</h2>
           <form id="login-form" class="auth-form" autocomplete="off">
             <div class="form-group">
-              <label class="form-label">NOME DA CAVALEIRA</label>
-              <input type="text" id="login-name" class="form-input" placeholder="Seu nome de batalha" maxlength="20" required />
+              <label class="form-label" data-i18n="auth.login.name">NOME DA CAVALEIRA</label>
+              <input type="text" id="login-name" class="form-input" data-i18n-ph="auth.login.namePh" placeholder="Seu nome de batalha" maxlength="20" required />
             </div>
             <div class="form-group">
-              <label class="form-label">SENHA SECRETA</label>
-              <input type="password" id="login-pass" class="form-input" placeholder="Sua senha" required />
+              <label class="form-label" data-i18n="auth.login.pass">SENHA SECRETA</label>
+              <input type="password" id="login-pass" class="form-input" data-i18n-ph="auth.login.passPh" placeholder="Sua senha" required />
             </div>
             <div id="login-error" class="form-error hidden"></div>
-            <button type="submit" class="mbtn primary">► ENTRAR</button>
-            <button type="button" class="mbtn" data-act="show-register">FORJAR NOVA CONTA</button>
-            <button type="button" class="mbtn ghost" data-act="guest">PARTIR COMO ANDARILHO</button>
+            <button type="submit" class="mbtn primary" data-i18n="auth.login.submit">► ENTRAR</button>
+            <button type="button" class="mbtn" data-act="show-register" data-i18n="auth.login.toRegister">FORJAR NOVA CONTA</button>
+            <button type="button" class="mbtn ghost" data-act="guest" data-i18n="auth.login.guest">PARTIR COMO ANDARILHO</button>
           </form>
         </div>
       </div>
@@ -225,49 +247,49 @@
       <div id="ov-register" class="overlay hidden">
         <div class="menu-inner">
           <div class="brand-stamp">⚜ B42 EDTECH ⚜</div>
-          <h2 class="title">⚔ FORJAR NOVA CAVALEIRA</h2>
+          <h2 class="title" data-i18n="auth.register.title">⚔ FORJAR NOVA CAVALEIRA</h2>
           <form id="register-form" class="auth-form" autocomplete="off">
             <div class="form-group">
-              <label class="form-label">NOME DE JOGADOR</label>
-              <input type="text" id="reg-name" class="form-input" placeholder="Escolha um nome único" maxlength="20" required />
+              <label class="form-label" data-i18n="auth.register.name">NOME DE JOGADOR</label>
+              <input type="text" id="reg-name" class="form-input" data-i18n-ph="auth.register.namePh" placeholder="Escolha um nome único" maxlength="20" required />
               <span id="reg-name-status" class="form-hint"></span>
             </div>
             <div class="form-group">
-              <label class="form-label">EMAIL</label>
-              <input type="email" id="reg-email" class="form-input" placeholder="seu@email.com" required />
+              <label class="form-label" data-i18n="auth.register.email">EMAIL</label>
+              <input type="email" id="reg-email" class="form-input" data-i18n-ph="auth.register.emailPh" placeholder="seu@email.com" required />
             </div>
             <div class="form-group">
-              <label class="form-label">TELEFONE (WHATSAPP)</label>
-              <input type="tel" id="reg-phone" class="form-input" placeholder="(11) 91234-5678" maxlength="20" required />
-              <span class="form-hint">Use somente para contato relacionado ao jogo.</span>
+              <label class="form-label" data-i18n="auth.register.phone">TELEFONE (WHATSAPP)</label>
+              <input type="tel" id="reg-phone" class="form-input" data-i18n-ph="auth.register.phonePh" placeholder="(11) 91234-5678" maxlength="20" required />
+              <span class="form-hint" data-i18n="auth.register.phoneHint">Use somente para contato relacionado ao jogo.</span>
             </div>
             <div class="form-group">
-              <label class="form-label">SENHA</label>
-              <input type="password" id="reg-pass" class="form-input" placeholder="Mínimo 4 caracteres" minlength="4" required />
+              <label class="form-label" data-i18n="auth.register.pass">SENHA</label>
+              <input type="password" id="reg-pass" class="form-input" data-i18n-ph="auth.register.passPh" placeholder="Mínimo 4 caracteres" minlength="4" required />
             </div>
             <div class="form-group">
-              <label class="form-label">CONFIRMAR SENHA</label>
-              <input type="password" id="reg-pass2" class="form-input" placeholder="Repita a senha" required />
+              <label class="form-label" data-i18n="auth.register.pass2">CONFIRMAR SENHA</label>
+              <input type="password" id="reg-pass2" class="form-input" data-i18n-ph="auth.register.pass2Ph" placeholder="Repita a senha" required />
             </div>
             <div class="consent-block">
               <label class="consent-row">
                 <input type="checkbox" id="reg-consent-terms" required />
                 <span>
-                  Li e aceito os
-                  <button type="button" class="link-btn" data-act="show-terms">Termos de Uso</button>.
+                  <span data-i18n="auth.register.terms">Li e aceito os</span>
+                  <button type="button" class="link-btn" data-act="show-terms" data-i18n="auth.register.termsLink">Termos de Uso</button>.
                 </span>
               </label>
               <label class="consent-row">
                 <input type="checkbox" id="reg-consent-lgpd" required />
                 <span>
-                  Autorizo o tratamento dos meus dados conforme a
-                  <button type="button" class="link-btn" data-act="show-lgpd">Política de Privacidade (LGPD)</button>.
+                  <span data-i18n="auth.register.lgpd">Autorizo o tratamento dos meus dados conforme a</span>
+                  <button type="button" class="link-btn" data-act="show-lgpd" data-i18n="auth.register.lgpdLink">Política de Privacidade (LGPD)</button>.
                 </span>
               </label>
             </div>
             <div id="reg-error" class="form-error hidden"></div>
-            <button type="submit" class="mbtn primary">► CRIAR CONTA</button>
-            <button type="button" class="mbtn" data-act="show-login">JÁ TENHO CONTA</button>
+            <button type="submit" class="mbtn primary" data-i18n="auth.register.submit">► CRIAR CONTA</button>
+            <button type="button" class="mbtn" data-act="show-login" data-i18n="auth.register.toLogin">JÁ TENHO CONTA</button>
           </form>
         </div>
       </div>
@@ -276,7 +298,7 @@
       <div id="ov-terms" class="overlay hidden">
         <div class="menu-inner terms-inner">
           <div class="brand-stamp">B42 EDTECH</div>
-          <h2 class="title">TERMOS DE USO</h2>
+          <h2 class="title" data-i18n="terms.title">TERMOS DE USO</h2>
           <div class="terms-body">
             <p><strong>1. Sobre o jogo.</strong> "O Resgate da Aprendizagem" é um jogo educativo experimental, criado pela B42 EdTech para fins demonstrativos e de pesquisa em engajamento pedagógico.</p>
             <p><strong>2. Conta de jogador.</strong> O cadastro é opcional e serve para manter seu progresso, ranking e histórico. Você é responsável pela veracidade dos dados informados.</p>
@@ -285,7 +307,7 @@
             <p><strong>5. Alterações.</strong> Estes termos podem ser revisados a qualquer momento. Continuar jogando após mudanças implica aceite das novas regras.</p>
             <p><strong>6. Contato.</strong> Dúvidas, sugestões ou pedidos de remoção de conta: <em>contato@b42.com.br</em>.</p>
           </div>
-          <button type="button" class="mbtn primary" data-act="close-modal">► ENTENDI</button>
+          <button type="button" class="mbtn primary" data-act="close-modal" data-i18n="terms.understood">► ENTENDI</button>
         </div>
       </div>
 
@@ -293,7 +315,7 @@
       <div id="ov-lgpd" class="overlay hidden">
         <div class="menu-inner terms-inner">
           <div class="brand-stamp">B42 EDTECH</div>
-          <h2 class="title">POLÍTICA DE PRIVACIDADE (LGPD)</h2>
+          <h2 class="title" data-i18n="lgpd.title">POLÍTICA DE PRIVACIDADE (LGPD)</h2>
           <div class="terms-body">
             <p><strong>1. Quais dados coletamos.</strong> Nome de jogador, e-mail, telefone (WhatsApp) e estatísticas de jogo (pontuação, fases, progresso). A senha é armazenada em formato cifrado (hash SHA-256).</p>
             <p><strong>2. Para que usamos.</strong> (a) Manter seu progresso entre sessões; (b) compor o ranking comunitário; (c) eventual contato relacionado ao jogo (anúncios de novas fases, eventos educacionais como o CIAED, pesquisas).</p>
@@ -304,7 +326,32 @@
             <p><strong>7. Crianças e adolescentes.</strong> Menores de 13 anos só podem se cadastrar com autorização expressa dos pais ou responsáveis, conforme art. 14 da LGPD.</p>
             <p><strong>8. Encarregado pelo tratamento (DPO).</strong> Equipe B42 EdTech — <em>contato@b42.com.br</em>.</p>
           </div>
-          <button type="button" class="mbtn primary" data-act="close-modal">► ENTENDI</button>
+          <button type="button" class="mbtn primary" data-act="close-modal" data-i18n="terms.understood">► ENTENDI</button>
+        </div>
+      </div>
+
+      <!-- Créditos finais — diálogo estilo Pokémon Fire Red -->
+      <div id="ov-credits" class="overlay hidden">
+        <div class="credits-stage">
+          <!-- Cenário de fundo (vinheta de castelo medieval) -->
+          <div class="credits-bg" aria-hidden="true">
+            <div class="credits-stars"></div>
+          </div>
+
+          <!-- Sprite do personagem que está falando (à esquerda) -->
+          <div class="credits-portrait-wrap">
+            <div class="credits-portrait" id="credits-portrait"></div>
+            <div class="credits-portrait-name" id="credits-portrait-name"></div>
+          </div>
+
+          <!-- Caixa de diálogo Pokémon-style -->
+          <div class="credits-box">
+            <div class="credits-text" id="credits-text"></div>
+            <div class="credits-arrow" id="credits-arrow">▼</div>
+          </div>
+
+          <!-- Botão pra pular -->
+          <button class="credits-skip" id="credits-skip" data-act="credits-skip">PULAR ►►</button>
         </div>
       </div>
 
@@ -371,14 +418,16 @@
     <!-- Aviso de rotação (aparece em portrait no mobile) -->
     <div id="rotate-warning">
       <div class="rotate-icon">📱</div>
-      <div class="rotate-title">GIRE O APARELHO</div>
-      <div class="rotate-sub">Este jogo é melhor jogado na horizontal</div>
+      <div class="rotate-title" data-i18n="rotate.title">GIRE O APARELHO</div>
+      <div class="rotate-sub" data-i18n="rotate.sub">Este jogo é melhor jogado na horizontal</div>
     </div>
 
     <!-- Indicador de som -->
     <div id="sound-badge" title="Tecla M para alternar">♪ ON</div>
   </div>
 
+  <!-- i18n carrega antes de TUDO pra traduzir o DOM ao boot -->
+  <script src="js/i18n.js" defer></script>
   <!-- Supabase SDK (opcional: se falhar carregar, o jogo cai no localStorage) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
   <script src="js/supabase-client.js" defer></script>

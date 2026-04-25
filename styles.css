@@ -4,34 +4,34 @@
    ============================================================ */
 
 :root {
-  /* Paleta MEDIEVAL — pergaminho, ouro velho, vinho real, floresta profunda */
-  --b42-purple:       #4a1f6e; /* roxo manto real */
-  --b42-purple-light: #7c54a8;
-  --b42-purple-dark:  #1d0a36;
-  --b42-orange:       #c8901d; /* ouro velho (não mais laranja gritante) */
-  --b42-orange-dark:  #8e6212;
-  --b42-yellow:       #e6c050; /* dourado pergaminho */
-  --b42-cream:        #f1e2b8; /* pergaminho claro */
-  --b42-red:          #a8211a; /* vermelho-vinho heráldico */
-  --b42-pink:         #b03a5e; /* rosa-vinho desbotado */
-  --b42-cyan:         #4a7a9b; /* azul real noturno */
-  --b42-green:        #4a6b2f; /* verde floresta */
-  --b42-lime:         #88a64a;
-  --b42-magenta:      #8a3a8a;
+  /* Paleta MEDIEVAL VIVA — heráldica saturada, pergaminho dourado, sangue real */
+  --b42-purple:       #6f2db8; /* roxo manto real saturado */
+  --b42-purple-light: #b07eff;
+  --b42-purple-dark:  #2a1454;
+  --b42-orange:       #f5a623; /* ouro vivo */
+  --b42-orange-dark:  #c47a08;
+  --b42-yellow:       #ffd643; /* dourado brilhante */
+  --b42-cream:        #fff1c2; /* pergaminho claro */
+  --b42-red:          #e53935; /* vermelho-sangue heráldico */
+  --b42-pink:         #d4407a; /* rosa-vinho saturado */
+  --b42-cyan:         #2db8d4; /* azul real vivo */
+  --b42-green:        #4caf50; /* verde floresta vivo */
+  --b42-lime:         #aedd5a;
+  --b42-magenta:      #b04ed4;
 
   /* Tons de pedra/madeira pra cenário medieval */
-  --b42-stone:        #4f4438;
+  --b42-stone:        #5e5247;
   --b42-stone-dark:   #2a241d;
-  --b42-wood:         #5a3a1d;
-  --b42-parchment:    #e8d8a8;
-  --b42-leather:      #6a4828;
+  --b42-wood:         #7a4a23;
+  --b42-parchment:    #f3e0a8;
+  --b42-leather:      #8b5a2e;
 
-  /* Gradientes em tom heráldico */
-  --grad-primary: linear-gradient(135deg, #c8901d 0%, #a8211a 60%, #6e1813 100%);
-  --grad-second:  linear-gradient(135deg, #4a7a9b 0%, #4a1f6e 100%);
-  --grad-danger:  linear-gradient(135deg, #a8211a 0%, #c8901d 100%);
-  --grad-success: linear-gradient(135deg, #4a6b2f 0%, #88a64a 100%);
-  --grad-ghost:   linear-gradient(135deg, rgba(200,144,29,0.15) 0%, rgba(168,33,26,0.15) 100%);
+  /* Gradientes vibrantes em tom heráldico */
+  --grad-primary: linear-gradient(135deg, #f5a623 0%, #e53935 55%, #8a1a18 100%);
+  --grad-second:  linear-gradient(135deg, #2db8d4 0%, #6f2db8 100%);
+  --grad-danger:  linear-gradient(135deg, #e53935 0%, #f5a623 100%);
+  --grad-success: linear-gradient(135deg, #4caf50 0%, #aedd5a 100%);
+  --grad-ghost:   linear-gradient(135deg, rgba(245,166,35,0.18) 0%, rgba(229,57,53,0.18) 100%);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -93,7 +93,8 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
    ============================================================ */
 #canvas-wrap {
   position: relative;
-  width: min(1440px, calc(100vh * 16/9 - 40px), 98vw);
+  /* PC: bem maior, ocupa quase a tela toda mantendo 16:9 */
+  width: min(1920px, calc(100vh * 16/9 - 20px), 98vw);
   aspect-ratio: 16 / 9;
   border: 6px solid #000;
   outline: 4px solid var(--b42-orange);
@@ -101,8 +102,35 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   background: #000;
   box-shadow:
     0 0 0 2px #000,
-    0 0 60px rgba(247,148,29,0.35),
+    0 0 80px rgba(245,166,35,0.45),
     0 12px 0 #000;
+}
+
+/* Botão de tela cheia no canto superior direito do canvas (só PC) */
+#fullscreen-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 60;
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--b42-orange);
+  background: rgba(0,0,0,0.6);
+  color: var(--b42-yellow);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter 0.15s, transform 0.1s;
+}
+#fullscreen-btn:hover { filter: brightness(1.2); }
+#fullscreen-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #000; }
+@media (pointer: coarse), (max-width: 820px) {
+  #fullscreen-btn { display: none; }
 }
 
 #game {
@@ -953,6 +981,261 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 /* Esconde itens admin para usuários comuns */
 .admin-only.hidden { display: none; }
 
+/* ============================================================
+   CRÉDITOS FINAIS — diálogo estilo Pokémon Fire Red
+   ============================================================ */
+#ov-credits {
+  background: #000;
+  padding: 0;
+  align-items: stretch;
+  justify-content: stretch;
+}
+
+.credits-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  background: linear-gradient(180deg, #1a0a3e 0%, #2a1454 50%, #4a1f6e 100%);
+}
+
+/* Estrelas no céu */
+.credits-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(2px 2px at 18% 22%, #fff5a1 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 38% 14%, #fff 50%, transparent 50%),
+    radial-gradient(2px 2px at 58% 28%, #ffd643 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 78% 18%, #fff 50%, transparent 50%),
+    radial-gradient(2px 2px at 88% 36%, #fff5a1 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 28% 38%, #fff 50%, transparent 50%),
+    radial-gradient(2px 2px at 8% 8%, #fff5a1 50%, transparent 50%),
+    radial-gradient(2px 2px at 68% 8%, #fff 50%, transparent 50%);
+  animation: credits-twinkle 3.4s ease-in-out infinite alternate;
+}
+
+@keyframes credits-twinkle {
+  0%   { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.credits-stars {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 110%, rgba(245,166,35,0.35) 0%, transparent 45%),
+    /* Silhueta de castelo no fundo */
+    linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.6) 100%);
+}
+
+/* Retrato (sprite do personagem que está falando) */
+.credits-portrait-wrap {
+  position: absolute;
+  bottom: 26%; /* logo acima da caixa de texto */
+  left: 8%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  animation: credits-portrait-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes credits-portrait-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.8); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.credits-portrait {
+  width: 96px;
+  height: 96px;
+  border: 4px solid var(--b42-yellow);
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  background-color: #2a1454;
+  box-shadow:
+    0 6px 0 rgba(0,0,0,0.7),
+    0 0 30px rgba(255,214,67,0.6),
+    inset 0 0 0 2px rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  image-rendering: pixelated;
+}
+
+.credits-portrait-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  color: var(--b42-yellow);
+  background: rgba(0,0,0,0.7);
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 2px solid var(--b42-orange);
+  text-shadow: 1px 1px 0 #000;
+  letter-spacing: 1px;
+}
+
+/* Caixa de diálogo branca/azulada estilo Pokémon Fire Red */
+.credits-box {
+  position: relative;
+  margin: 0 6vw 24px;
+  background: linear-gradient(180deg, #fafaff 0%, #d8e0f5 100%);
+  border: 6px solid #2a3470;
+  outline: 4px solid #fafaff;
+  outline-offset: -10px;
+  padding: 22px 28px 28px;
+  min-height: 100px;
+  font-family: 'VT323', monospace;
+  font-size: 26px;
+  line-height: 1.4;
+  color: #1a2050;
+  z-index: 1;
+  box-shadow:
+    inset 0 0 0 3px #2a3470,
+    inset 6px 6px 0 rgba(255,255,255,0.6),
+    0 6px 0 #000,
+    0 0 30px rgba(0,0,0,0.6);
+}
+
+.credits-box::before,
+.credits-box::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #2a3470;
+}
+.credits-box::before { top: -6px; left: -6px; box-shadow: calc(100% + 12px) 0 0 #2a3470; }
+.credits-box::after  { bottom: -6px; left: -6px; box-shadow: calc(100% + 12px) 0 0 #2a3470; }
+
+.credits-text {
+  white-space: pre-wrap;
+  min-height: 80px;
+}
+
+.credits-text strong {
+  color: #c47a08;
+  font-weight: bold;
+}
+.credits-text em {
+  color: #2a3470;
+  font-style: normal;
+  font-weight: bold;
+}
+
+.credits-arrow {
+  position: absolute;
+  bottom: 8px;
+  right: 14px;
+  font-size: 24px;
+  color: #2a3470;
+  animation: credits-arrow-blink 0.7s ease-in-out infinite;
+}
+
+@keyframes credits-arrow-blink {
+  0%, 100% { opacity: 0; transform: translateY(0); }
+  50%      { opacity: 1; transform: translateY(2px); }
+}
+
+.credits-arrow.hidden { display: none; }
+
+.credits-skip {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: #fff;
+  background: rgba(0,0,0,0.6);
+  border: 2px solid var(--b42-orange);
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  z-index: 3;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.7);
+  transition: filter 0.15s, transform 0.1s;
+}
+.credits-skip:hover { filter: brightness(1.2); }
+.credits-skip:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,0.7); }
+
+@media (pointer: coarse), (max-width: 820px) {
+  .credits-portrait { width: 64px; height: 64px; font-size: 40px; }
+  .credits-portrait-name { font-size: 8px; padding: 4px 8px; }
+  .credits-portrait-wrap { left: 5%; bottom: 30%; }
+  .credits-box { font-size: 16px; padding: 14px 18px 20px; min-height: 70px; margin: 0 4vw 16px; }
+  .credits-arrow { font-size: 18px; }
+  .credits-skip { font-size: 8px; padding: 6px 10px; }
+}
+
+/* ============================================================
+   SELETOR DE IDIOMA
+   ============================================================ */
+.lang-inner { max-width: 720px; }
+
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  width: 100%;
+  margin: 14px 0 18px;
+}
+
+.lang-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(10,4,30,0.6);
+  border: 3px solid var(--b42-purple);
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'VT323', monospace;
+  font-size: 20px;
+  color: #fff;
+  transition: transform 0.1s, border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+
+.lang-card:hover {
+  border-color: var(--b42-orange);
+  background: rgba(106,45,191,0.3);
+  transform: translateY(-2px);
+}
+
+.lang-card.selected {
+  border-color: var(--b42-yellow);
+  background: linear-gradient(135deg, rgba(245,166,35,0.25), rgba(229,57,53,0.25));
+  box-shadow: 0 0 18px rgba(245,166,35,0.45),
+    inset 0 0 0 1px rgba(255,214,67,0.5);
+}
+
+.lang-flag {
+  font-size: 28px;
+  flex: 0 0 auto;
+}
+
+.lang-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--b42-cream);
+}
+
+@media (pointer: coarse), (max-width: 820px) {
+  .lang-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .lang-card { padding: 8px 10px; font-size: 14px; }
+  .lang-flag { font-size: 22px; }
+  .lang-name { font-size: 8px; }
+}
+
 /* Badge do usuario logado no menu */
 .user-badge {
   display: inline-flex;
@@ -1419,26 +1702,26 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  border: 3px solid rgba(0,0,0,0.7);
-  background: rgba(91, 45, 145, 0.55);
-  color: #fff;
+  border: 3px solid rgba(0,0,0,0.5);
+  background: rgba(91, 45, 145, 0.28); /* MUITO mais transparente */
+  color: rgba(255,255,255,0.95);
   font-family: 'Press Start 2P', monospace;
   font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-shadow: 2px 2px 0 rgba(0,0,0,0.9);
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.85);
   box-shadow:
-    0 4px 0 rgba(0,0,0,0.6),
-    inset 3px 3px 0 rgba(255,255,255,0.22),
-    inset -3px -3px 0 rgba(0,0,0,0.28);
+    0 3px 0 rgba(0,0,0,0.4),
+    inset 3px 3px 0 rgba(255,255,255,0.18),
+    inset -3px -3px 0 rgba(0,0,0,0.18);
   -webkit-tap-highlight-color: transparent;
   touch-action: none;
   user-select: none;
   transition: transform 0.05s, box-shadow 0.05s, background 0.1s;
   padding: 0;
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
 .tc-btn:active,
@@ -1451,9 +1734,9 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   background: rgba(139, 95, 191, 0.95);
 }
 
-/* Botão A (pular) — laranja, maior */
+/* Botão A (pular) — laranja, maior, transparente */
 .tc-jump {
-  background: rgba(247, 148, 29, 0.62);
+  background: rgba(247, 148, 29, 0.32);
   width: 96px;
   height: 96px;
   font-size: 30px;
@@ -1461,28 +1744,28 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
 .tc-jump:active,
 .tc-jump.pressed {
-  background: rgba(255, 176, 74, 0.98);
+  background: rgba(255, 176, 74, 0.88);
 }
 
-/* Botão B (correr) — menor */
+/* Botão B (correr) — menor, transparente */
 .tc-run {
-  background: linear-gradient(135deg, #4fd6ff, #6a2dbf);
+  background: linear-gradient(135deg, rgba(79,214,255,0.30), rgba(106,45,191,0.30));
   width: 66px;
   height: 66px;
   font-size: 18px;
   align-self: flex-end;
   margin-bottom: 8px;
-  border-color: #000;
+  border-color: rgba(0,0,0,0.5);
 }
 
 .tc-run:active,
 .tc-run.pressed {
-  background: linear-gradient(135deg, #80e6ff, #8b5fbf);
+  background: linear-gradient(135deg, rgba(128,230,255,0.85), rgba(139,95,191,0.85));
 }
 
-/* Botão Poder (estrela rosa/magenta) */
+/* Botão Poder (estrela rosa/magenta) — transparente */
 .tc-power {
-  background: linear-gradient(135deg, #ff4fa3, #d24fff);
+  background: linear-gradient(135deg, rgba(255,79,163,0.30), rgba(210,79,255,0.30));
   width: 60px;
   height: 60px;
   font-size: 24px;

@@ -3761,21 +3761,183 @@ class Game {
     const pd = this._princessDialog;
     if (!pd) return;
     const line = pd.lines[pd.idx];
-    document.getElementById('princess-speaker').textContent = line.speaker;
-    document.getElementById('princess-body').innerHTML = line.text;
+    const speakerEl = document.getElementById('princess-speaker');
+    const bodyEl    = document.getElementById('princess-body');
+    const portraitEl = document.getElementById('princess-portrait');
+    if (speakerEl) speakerEl.textContent = line.speaker;
+    // Define o emoji/sprite do retrato baseado em quem fala
+    if (portraitEl) {
+      const isPrincess = /princesa|princess|princesse|prinzessin/i.test(line.speaker);
+      portraitEl.textContent = isPrincess ? '👸' : '⚔️';
+      portraitEl.style.background = isPrincess
+        ? 'linear-gradient(135deg, #ffb3d9, #d24fff)'
+        : 'linear-gradient(135deg, #4fd6ff, #6a2dbf)';
+    }
+    // Typewriter: revela o texto caractere por caractere
+    if (bodyEl) {
+      this._typewrite(bodyEl, line.text);
+    }
+  }
+
+  // Efeito Pokémon: revela texto progressivamente, ignora tags HTML
+  _typewrite(el, html) {
+    if (this._tw && this._tw.timer) {
+      clearTimeout(this._tw.timer);
+    }
+    this._tw = { full: html, shown: '', idx: 0, el, done: false };
+    el.innerHTML = '';
+    const tick = () => {
+      const tw = this._tw;
+      if (!tw || tw.done) return;
+      // Avança 1 char por frame, mas pula tags HTML inteiras
+      const ch = tw.full.charAt(tw.idx);
+      if (ch === '<') {
+        const close = tw.full.indexOf('>', tw.idx);
+        if (close !== -1) {
+          tw.shown += tw.full.slice(tw.idx, close + 1);
+          tw.idx = close + 1;
+        } else {
+          tw.shown += ch;
+          tw.idx++;
+        }
+      } else if (ch === '&') {
+        // Entidade HTML: avança até o ;
+        const semi = tw.full.indexOf(';', tw.idx);
+        if (semi !== -1 && semi - tw.idx < 8) {
+          tw.shown += tw.full.slice(tw.idx, semi + 1);
+          tw.idx = semi + 1;
+        } else {
+          tw.shown += ch;
+          tw.idx++;
+        }
+      } else {
+        tw.shown += ch;
+        tw.idx++;
+      }
+      tw.el.innerHTML = tw.shown;
+      if (tw.idx < tw.full.length) {
+        tw.timer = setTimeout(tick, 22);
+      } else {
+        tw.done = true;
+      }
+    };
+    tick();
+  }
+
+  // Pula o typewriter (mostra texto completo) — chamado quando o jogador
+  // clica antes do texto terminar de aparecer.
+  _skipTypewrite() {
+    if (this._tw && !this._tw.done) {
+      clearTimeout(this._tw.timer);
+      this._tw.el.innerHTML = this._tw.full;
+      this._tw.shown = this._tw.full;
+      this._tw.idx = this._tw.full.length;
+      this._tw.done = true;
+      return true; // significa "ainda não avança a linha"
+    }
+    return false;
   }
 
   _advancePrincessDialog() {
+    // Se o typewriter ainda está rolando, primeiro completa o texto.
+    if (this._skipTypewrite()) return;
     const pd = this._princessDialog;
     if (!pd) return;
     pd.idx++;
     if (pd.idx >= pd.lines.length) {
       this._princessDialog = null;
       hide('ov-princess');
-      this._showVictoryScreen();
+      // Encadeia os créditos finais (estilo Pokemon Fire Red)
+      this._startCreditsDialog();
     } else {
       this._renderPrincessDialog();
     }
+  }
+
+  // ========== CRÉDITOS FINAIS (estilo Pokémon Fire Red) ==========
+  _startCreditsDialog() {
+    this._creditsDialog = {
+      idx: 0,
+      lines: [
+        {
+          speaker: 'GUILHERME G. FERREIRA',
+          portrait: '👨‍💻',
+          tint: 'linear-gradient(135deg, #4fd6ff, #6a2dbf)',
+          text:
+            'Olá, aventureiro(a)! Eu sou o <strong>Guilherme</strong>, ' +
+            'cuidei de tudo o que você não vê: <em>front, back, banco e infra</em>.<br/><br/>' +
+            'Cada pulo, cada moeda, cada salvamento de score passou pelas minhas mãos.'
+        },
+        {
+          speaker: 'BRENDA M.',
+          portrait: '🎨',
+          tint: 'linear-gradient(135deg, #ffb3d9, #ff4fa3)',
+          text:
+            'Oi! Eu sou a <strong>Brenda</strong>, designer e pesquisadora.<br/><br/>' +
+            'Trouxe a <em>identidade visual</em>, os personagens e o estudo pedagógico ' +
+            'que faz cada fase ensinar algo de verdade.'
+        },
+        {
+          speaker: 'BRUNA M.',
+          portrait: '✨',
+          tint: 'linear-gradient(135deg, #ffe14f, #ff9c1d)',
+          text:
+            'E eu sou a <strong>Bruna</strong>, também designer e pesquisadora.<br/><br/>' +
+            'Cuidei do <em>ritmo das fases</em>, das transições e da pesquisa que ' +
+            'transforma teoria pedagógica em quest jogável.'
+        },
+        {
+          speaker: 'EQUIPE B42',
+          portrait: '⚔',
+          tint: 'linear-gradient(135deg, #ffd643, #f5a623)',
+          text:
+            'Obrigada por jogar <strong>O RESGATE DA APRENDIZAGEM</strong>!<br/><br/>' +
+            'Te esperamos no <strong>CIAED 2026</strong> pra mostrar como ' +
+            '<em>conteúdo bom vira jornada que prende</em>. ⚜ <strong>B42 EdTech</strong> ⚜'
+        },
+      ],
+    };
+    this.state = 'credits';
+    hideAll();
+    hideTouchControls();
+    show('ov-credits');
+    this._renderCreditsDialog();
+  }
+
+  _renderCreditsDialog() {
+    const cd = this._creditsDialog;
+    if (!cd) return;
+    const line = cd.lines[cd.idx];
+    const nameEl    = document.getElementById('credits-portrait-name');
+    const portraitEl = document.getElementById('credits-portrait');
+    const textEl    = document.getElementById('credits-text');
+    if (nameEl)     nameEl.textContent = line.speaker;
+    if (portraitEl) {
+      portraitEl.textContent = line.portrait || '⚔';
+      portraitEl.style.background = line.tint || 'linear-gradient(135deg, #4fd6ff, #6a2dbf)';
+    }
+    if (textEl) this._typewrite(textEl, line.text);
+  }
+
+  _advanceCreditsDialog() {
+    if (this._skipTypewrite()) return;
+    const cd = this._creditsDialog;
+    if (!cd) return;
+    cd.idx++;
+    if (cd.idx >= cd.lines.length) {
+      this._creditsDialog = null;
+      hide('ov-credits');
+      this._showVictoryScreen();
+    } else {
+      this._renderCreditsDialog();
+    }
+  }
+
+  _skipCreditsDialog() {
+    this._creditsDialog = null;
+    if (this._tw) { clearTimeout(this._tw.timer); this._tw = null; }
+    hide('ov-credits');
+    this._showVictoryScreen();
   }
 
   _showVictoryScreen() {
@@ -3845,6 +4007,7 @@ class Game {
     if (this.state === 'play' && this.powerPopup) { this.dismissPowerPopup(); return; }
     if (this.state === 'dialog') this.startLevel();
     else if (this.state === 'princess') this._advancePrincessDialog();
+    else if (this.state === 'credits') this._advanceCreditsDialog();
     else if (this.state === 'menu') this.startGame();
     else if (this.state === 'complete') this.nextLevel();
     else if (this.state === 'gameover') { this.player = null; this.loadLevel(this.levelIdx); }
@@ -4047,10 +4210,10 @@ class Game {
     ctx.save();
     ctx.globalAlpha = alpha;
 
-    // Se o texto for longo, quebra em até 3 linhas (balão menor).
-    ctx.font = '10px "VT323", monospace';
+    // Texto maior + bold + line-height generoso pra leitura nítida.
+    ctx.font = 'bold 13px "VT323", monospace';
     ctx.textBaseline = 'middle';
-    const maxW = 150;
+    const maxW = 180;
     const words = sb.text.split(' ');
     const lines = [];
     let cur = '';
@@ -4065,8 +4228,8 @@ class Game {
     }
     if (cur) lines.push(cur);
 
-    const padX = 7, padY = 4;
-    const lineH = 11;
+    const padX = 9, padY = 6;
+    const lineH = 14;
     const textW = Math.max(...lines.map(l => ctx.measureText(l).width));
     const iconW = 11; // espaço pra estrelinha à esquerda
     const w = Math.min(maxW + iconW + padX * 2, Math.ceil(textW) + iconW + padX * 2);
@@ -4988,7 +5151,7 @@ function hide(id) {
   if (el) el.classList.add('hidden');
 }
 function hideAll() {
-  ['ov-menu','ov-select','ov-controls','ov-dialog','ov-princess','ov-pause','ov-gameover','ov-complete','ov-victory','ov-login','ov-register','ov-b42ad','ov-admin','ov-terms','ov-lgpd']
+  ['ov-menu','ov-select','ov-controls','ov-dialog','ov-princess','ov-pause','ov-gameover','ov-complete','ov-victory','ov-login','ov-register','ov-b42ad','ov-admin','ov-terms','ov-lgpd','ov-lang','ov-credits']
     .forEach(hide);
 }
 
@@ -5078,12 +5241,46 @@ function boot() {
 
   function showAuthOrMenu() {
     hideAll();
+    // Primeiro acesso: mostra seleção de idioma antes de tudo
+    if (window.I18N && !I18N.hasStoredLang()) {
+      buildLangGrid();
+      show('ov-lang');
+      return;
+    }
     if (UserSystem.isLoggedIn()) {
       updateUserBadge();
       show('ov-menu');
     } else {
       show('ov-login');
     }
+  }
+
+  // Constrói a grade de idiomas no overlay #ov-lang
+  let _langPick = null;
+  function buildLangGrid() {
+    if (!window.I18N) return;
+    const grid = document.getElementById('lang-grid');
+    if (!grid) return;
+    const langs = I18N.getLangs();
+    const current = I18N.getLang();
+    _langPick = current;
+    grid.innerHTML = Object.keys(langs).map(code => {
+      const l = langs[code];
+      const sel = code === current ? ' selected' : '';
+      return `<div class="lang-card${sel}" data-lang="${code}">
+        <span class="lang-flag">${l.flag}</span>
+        <span class="lang-name">${l.name}</span>
+      </div>`;
+    }).join('');
+    grid.querySelectorAll('.lang-card').forEach(card => {
+      card.addEventListener('click', () => {
+        grid.querySelectorAll('.lang-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        _langPick = card.getAttribute('data-lang');
+        // Aplica em tempo real pra o usuário ver o idioma mudando
+        if (window.I18N) I18N.setLang(_langPick);
+      });
+    });
   }
 
   // Login form
@@ -5273,9 +5470,48 @@ function boot() {
         case 'admin-refresh':
           renderAdminPanel();
           break;
+        case 'lang':
+          buildLangGrid();
+          show('ov-lang');
+          break;
+        case 'credits-skip':
+          if (game && game._skipCreditsDialog) game._skipCreditsDialog();
+          break;
       }
     });
   });
+
+  // Botão "CONFIRMAR" do seletor de idioma
+  const langConfirm = document.getElementById('lang-confirm');
+  if (langConfirm) {
+    langConfirm.addEventListener('click', () => {
+      AUDIO.init(); AUDIO.click();
+      if (_langPick && window.I18N) I18N.setLang(_langPick);
+      hideAll();
+      // Após escolher idioma, vai pra login ou menu (depende do estado)
+      if (UserSystem.isLoggedIn()) {
+        updateUserBadge();
+        show('ov-menu');
+      } else {
+        show('ov-login');
+      }
+    });
+  }
+
+  // Botão de tela cheia (PC)
+  const fsBtn = document.getElementById('fullscreen-btn');
+  if (fsBtn) {
+    fsBtn.addEventListener('click', () => {
+      const el = document.documentElement;
+      if (!document.fullscreenElement) {
+        const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+        if (req) req.call(el).catch(()=>{});
+      } else {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+        if (exit) exit.call(document).catch(()=>{});
+      }
+    });
+  }
 
   // ============================================================
   // Painel Admin — render + ações (delete)
@@ -5410,6 +5646,20 @@ function boot() {
         AUDIO.init();
         AUDIO.click();
         game._advancePrincessDialog();
+      }
+    });
+  }
+
+  // Diálogo de Créditos — clique/tap avança; última linha vai pra vitória.
+  const ovCredits = document.getElementById('ov-credits');
+  if (ovCredits) {
+    ovCredits.addEventListener('click', (e) => {
+      // Se clicou no botão "PULAR", deixa o botão lidar (data-act)
+      if (e.target && e.target.id === 'credits-skip') return;
+      if (game && game.state === 'credits') {
+        AUDIO.init();
+        AUDIO.click();
+        game._advanceCreditsDialog();
       }
     });
   }
