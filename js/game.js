@@ -5063,22 +5063,28 @@ function boot() {
   // Login form
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('login-name').value;
       const pass = document.getElementById('login-pass').value;
       const errEl = document.getElementById('login-error');
-      const result = UserSystem.login(name, pass);
-      if (result.ok) {
-        errEl.classList.add('hidden');
-        AUDIO.init();
-        AUDIO.click();
-        updateUserBadge();
-        hideAll();
-        show('ov-menu');
-      } else {
-        errEl.textContent = result.error;
-        errEl.classList.remove('hidden');
+      const submitBtn = loginForm.querySelector('button[type="submit"]');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'CONECTANDO...'; }
+      try {
+        const result = await UserSystem.login(name, pass);
+        if (result.ok) {
+          errEl.classList.add('hidden');
+          AUDIO.init();
+          AUDIO.click();
+          updateUserBadge();
+          hideAll();
+          show('ov-menu');
+        } else {
+          errEl.textContent = result.error;
+          errEl.classList.remove('hidden');
+        }
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '► ENTRAR'; }
       }
     });
   }
@@ -5110,7 +5116,7 @@ function boot() {
       });
     }
 
-    regForm.addEventListener('submit', (e) => {
+    regForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('reg-name').value;
       const email = document.getElementById('reg-email').value;
@@ -5120,6 +5126,7 @@ function boot() {
       const acceptedTerms = !!(document.getElementById('reg-consent-terms') || {}).checked;
       const acceptedLGPD  = !!(document.getElementById('reg-consent-lgpd')  || {}).checked;
       const errEl = document.getElementById('reg-error');
+      const submitBtn = regForm.querySelector('button[type="submit"]');
 
       const errors = UserSystem.validateRegistration(name, email, pass, pass2, {
         phone, acceptedTerms, acceptedLGPD,
@@ -5130,16 +5137,31 @@ function boot() {
         return;
       }
 
-      UserSystem.registerUser(name, email, pass, {
-        phone, acceptedTerms, acceptedLGPD,
-      });
-      UserSystem.login(name, pass);
-      AUDIO.init();
-      AUDIO.click();
-      errEl.classList.add('hidden');
-      updateUserBadge();
-      hideAll();
-      show('ov-menu');
+      if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'SALVANDO NO SERVIDOR...'; }
+      try {
+        const reg = await UserSystem.registerUser(name, email, pass, {
+          phone, acceptedTerms, acceptedLGPD,
+        });
+        if (!reg.ok) {
+          errEl.innerHTML = reg.error || 'Erro ao salvar conta.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        const loginResult = await UserSystem.login(name, pass);
+        if (!loginResult.ok) {
+          errEl.innerHTML = 'Conta criada, mas falhou o login: ' + (loginResult.error || '');
+          errEl.classList.remove('hidden');
+          return;
+        }
+        AUDIO.init();
+        AUDIO.click();
+        errEl.classList.add('hidden');
+        updateUserBadge();
+        hideAll();
+        show('ov-menu');
+      } finally {
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '► CRIAR CONTA'; }
+      }
     });
   }
 

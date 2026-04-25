@@ -131,14 +131,15 @@ function validateRegistration(playerName, email, password, confirmPassword, opts
 }
 
 // ============================================================
-// Registro — sempre grava no local E, se online, também no Supabase.
+// Registro — Supabase é a fonte de verdade. Só salva localmente
+// DEPOIS que o INSERT remoto deu certo (cache pra leitura rápida).
+// Se o Supabase não estiver disponível, retorna erro.
 // ============================================================
-function registerUser(playerName, email, password, opts) {
+async function registerUser(playerName, email, password, opts) {
   opts = opts || {};
-  const users = getUsers();
   const phoneDigits = _normalizePhone(opts.phone);
   const nowIso = new Date().toISOString();
-  const user = {
+  const userObj = {
     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
     playerName: playerName.trim(),
     email: email.trim().toLowerCase(),
@@ -154,99 +155,106 @@ function registerUser(playerName, email, password, opts) {
     consentAt:     nowIso,
     isAdmin:       isAdminEmail(email),
   };
-  users.push(user);
-  saveUsers(users);
 
-  if (HAS_SB) {
-    // Fire-and-forget: o front continua sem esperar.
-    sha256Hex(password).then(async (hashHex) => {
-      try {
-        // Tenta inserir com os novos campos. Se a tabela ainda não tem as
-        // colunas (banco antigo), faz fallback inserindo apenas o essencial.
-        const fullPayload = {
-          player_name:     user.playerName,
-          email:           user.email,
-          phone:           phoneDigits,
-          password_hash:   hashHex,
-          best_score:      0,
-          total_coins:     0,
-          total_kills:     0,
-          levels_completed: 0,
-          accepted_terms:  user.acceptedTerms,
-          accepted_lgpd:   user.acceptedLGPD,
-          consent_at:      nowIso,
-          is_admin:        user.isAdmin,
-        };
-        let { error } = await sb.from('players').insert(fullPayload);
-        if (error && /column .* does not exist|schema cache/i.test(String(error.message || ''))) {
-          // Banco antigo sem as colunas novas — insere só os campos que ele conhece.
-          const minimal = {
-            player_name:    user.playerName,
-            email:          user.email,
-            password_hash:  hashHex,
-            best_score:     0,
-            total_coins:    0,
-            total_kills:    0,
-            levels_completed: 0,
-          };
-          const fb = await sb.from('players').insert(minimal);
-          error = fb.error;
-          if (!error) {
-            console.info('[B42] cadastro feito (sem telefone/consent — rode o ALTER TABLE pra habilitar).');
-          }
-        }
-        if (error && !String(error.message || '').match(/duplicate|unique/i)) {
-          console.warn('[B42] register remote falhou:', error.message);
-        }
-      } catch (e) { console.warn('[B42] register remote erro:', e); }
-    });
+  if (!HAS_SB) {
+    return { ok: false, error: 'Servidor offline. Verifique sua conexão e tente novamente.', user: null };
   }
-  return user;
-}
 
-// ============================================================
-// Login — checa local primeiro. Se achar, salva sessão.
-// Se não achar E houver Supabase, busca na nuvem e traz pra cá.
-// ============================================================
-function login(playerName, password) {
-  const user = findUserLocal(playerName);
-  if (user) {
-    if (user.passwordHash !== simpleHash(password)) {
-      // Pode ser que a senha foi cadastrada remotamente com SHA-256 e
-      // replicada com outro hash localmente — tenta remoto se disponível.
-      if (HAS_SB) _tryRemoteLogin(playerName, password); // async best-effort
-      return { ok: false, error: 'Senha incorreta.' };
-    }
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({
-      id: user.id, playerName: user.playerName
-    }));
-    return { ok: true, user };
-  }
-  // Sem cadastro local: tenta remoto (retorna sem sucesso imediato, mas
-  // já dispara sync assíncrono).
-  if (HAS_SB) _tryRemoteLogin(playerName, password);
-  return { ok: false, error: 'Jogador não encontrado.' };
-}
-
-async function _tryRemoteLogin(playerName, password) {
   try {
     const hashHex = await sha256Hex(password);
-    const { data, error } = await sb
-      .from('players')
-      .select('*')
-      .eq('player_name', playerName.trim())
-      .eq('password_hash', hashHex)
-      .maybeSingle();
-    if (error || !data) return;
-    // Traz pro localStorage pra próxima chamada síncrona achar.
+    const fullPayload = {
+      player_name:     userObj.playerName,
+      email:           userObj.email,
+      phone:           phoneDigits,
+      password_hash:   hashHex,
+      best_score:      0,
+      total_coins:     0,
+      total_kills:     0,
+      levels_completed: 0,
+      accepted_terms:  userObj.acceptedTerms,
+      accepted_lgpd:   userObj.acceptedLGPD,
+      consent_at:      nowIso,
+      is_admin:        userObj.isAdmin,
+    };
+    let { data, error } = await sb.from('players').insert(fullPayload).select().maybeSingle();
+    if (error && /column .* does not exist|schema cache/i.test(String(error.message || ''))) {
+      // Schema antigo sem as colunas novas — tenta com payload reduzido.
+      const minimal = {
+        player_name:    userObj.playerName,
+        email:          userObj.email,
+        password_hash:  hashHex,
+        best_score:     0,
+        total_coins:    0,
+        total_kills:    0,
+        levels_completed: 0,
+      };
+      const fb = await sb.from('players').insert(minimal).select().maybeSingle();
+      data = fb.data; error = fb.error;
+      if (!error) {
+        console.info('[B42] cadastro feito (sem telefone/consent — rode o ALTER TABLE pra habilitar).');
+      }
+    }
+    if (error) {
+      const msg = String(error.message || '');
+      if (/duplicate|unique/i.test(msg)) {
+        return { ok: false, error: 'Esse nome ou e-mail já está cadastrado.', user: null };
+      }
+      console.warn('[B42] register remoto falhou:', msg);
+      return { ok: false, error: 'Não foi possível salvar no servidor: ' + msg, user: null };
+    }
+
+    // Sucesso remoto → cacheia local pra próximas leituras síncronas.
+    if (data && data.id) userObj.id = data.id;
     const users = getUsers();
-    if (!users.find(u => u.playerName.toLowerCase() === data.player_name.toLowerCase())) {
-      users.push({
+    users.push(userObj);
+    saveUsers(users);
+    return { ok: true, error: null, user: userObj };
+  } catch (e) {
+    console.warn('[B42] register remoto erro:', e);
+    return { ok: false, error: 'Erro de rede. Tente novamente.', user: null };
+  }
+}
+
+// ============================================================
+// Login — Supabase-first. Tenta autenticar contra a nuvem PRIMEIRO.
+// Se Supabase indisponível, cai pro localStorage como leitura-only
+// (pra não bloquear o jogo offline).
+// ============================================================
+async function login(playerName, password) {
+  if (HAS_SB) {
+    try {
+      const hashHex = await sha256Hex(password);
+      const { data, error } = await sb
+        .from('players')
+        .select('*')
+        .eq('player_name', playerName.trim())
+        .eq('password_hash', hashHex)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('[B42] login remoto falhou:', error.message);
+        // Se a query DEU erro (rede/RLS), tenta cache local como último recurso.
+        return _localLogin(playerName, password) || { ok: false, error: 'Erro de conexão. Tente novamente.' };
+      }
+
+      if (!data) {
+        // Conta não existe na nuvem → talvez exista só localmente (legado).
+        const localResult = _localLogin(playerName, password);
+        if (localResult && localResult.ok) {
+          // Conta legada: oferece sincronizar (faz upload silencioso pra nuvem)
+          _migrateLocalToRemote(localResult.user, password).catch(()=>{});
+          return localResult;
+        }
+        return { ok: false, error: 'Nome ou senha incorretos.' };
+      }
+
+      // Hidrata o cache local com os dados remotos (verdade canônica).
+      const cachedUser = {
         id: data.id,
         playerName: data.player_name,
         email: data.email,
         phone: data.phone || '',
-        passwordHash: simpleHash(password), // alinha com o formato local
+        passwordHash: simpleHash(password),
         createdAt: data.created_at,
         bestScore: data.best_score || 0,
         totalCoins: data.total_coins || 0,
@@ -255,13 +263,65 @@ async function _tryRemoteLogin(playerName, password) {
         acceptedTerms: !!data.accepted_terms,
         acceptedLGPD:  !!data.accepted_lgpd,
         isAdmin: !!data.is_admin || isAdminEmail(data.email),
-      });
+      };
+      const users = getUsers().filter(u => u.playerName.toLowerCase() !== cachedUser.playerName.toLowerCase());
+      users.push(cachedUser);
       saveUsers(users);
+
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+        id: cachedUser.id, playerName: cachedUser.playerName
+      }));
+      return { ok: true, user: cachedUser };
+    } catch (e) {
+      console.warn('[B42] login remoto erro:', e);
+      // Falha total da rede → cache local
+      return _localLogin(playerName, password) || { ok: false, error: 'Sem conexão.' };
     }
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({
-      id: data.id, playerName: data.player_name
-    }));
-  } catch (e) { console.warn('[B42] remote login falhou:', e); }
+  }
+
+  // Sem Supabase: cai pro local (modo offline puro).
+  return _localLogin(playerName, password) || { ok: false, error: 'Servidor offline e nenhuma conta local.' };
+}
+
+function _localLogin(playerName, password) {
+  const user = findUserLocal(playerName);
+  if (!user) return null;
+  if (user.passwordHash !== simpleHash(password)) {
+    return { ok: false, error: 'Senha incorreta.' };
+  }
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+    id: user.id, playerName: user.playerName
+  }));
+  return { ok: true, user };
+}
+
+// Migração silenciosa: conta que só existe localmente é enviada pra Supabase.
+async function _migrateLocalToRemote(user, password) {
+  if (!HAS_SB || !user) return;
+  try {
+    const hashHex = await sha256Hex(password);
+    const payload = {
+      player_name: user.playerName,
+      email: user.email || (user.playerName.toLowerCase() + '@local.b42'),
+      phone: user.phone || '',
+      password_hash: hashHex,
+      best_score: user.bestScore || 0,
+      total_coins: user.totalCoins || 0,
+      total_kills: user.totalKills || 0,
+      levels_completed: user.levelsCompleted || 0,
+      accepted_terms: !!user.acceptedTerms,
+      accepted_lgpd:  !!user.acceptedLGPD,
+      is_admin: !!user.isAdmin || isAdminEmail(user.email),
+    };
+    const { error } = await sb.from('players').insert(payload);
+    if (error && !/duplicate|unique/i.test(String(error.message || ''))) {
+      console.warn('[B42] migração local→remoto falhou:', error.message);
+    } else {
+      console.info('[B42] conta local sincronizada com a nuvem.');
+    }
+  } catch (e) {
+    console.warn('[B42] migração local→remoto erro:', e);
+  }
 }
 
 function logout() {
