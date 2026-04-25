@@ -43,6 +43,60 @@ const SPRITE_IMGS = {
   // Bloco "?" com molde dourado/azul. Animação de brilho é gerada em runtime.
   load('qblock', 'assets/qblock.png');
 })();
+
+// Detecta o bounding box do conteúdo não-branco/não-transparente da
+// imagem do qblock (tem padding branco em volta). O retângulo é salvo
+// em SPRITE_IMGS.qblockBBox = {sx, sy, sw, sh} pra ser usado no draw.
+(function detectQblockBBox() {
+  const tryDetect = () => {
+    const img = SPRITE_IMGS.qblock;
+    if (!img || !img.complete || !img.naturalWidth) {
+      setTimeout(tryDetect, 200);
+      return;
+    }
+    try {
+      const w = img.naturalWidth, h = img.naturalHeight;
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, w, h).data;
+      const isContent = (i) => {
+        const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+        if (a < 30) return false;
+        if (r > 240 && g > 240 && b > 240) return false;
+        return true;
+      };
+      let minX = w, minY = h, maxX = 0, maxY = 0, found = false;
+      // Sample em grade 4-pixel pra performance
+      for (let y = 0; y < h; y += 4) {
+        for (let x = 0; x < w; x += 4) {
+          if (isContent((y * w + x) * 4)) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+            found = true;
+          }
+        }
+      }
+      if (found) {
+        // Folga de 4px pra não cortar pixels do contorno
+        const pad = 4;
+        SPRITE_IMGS.qblockBBox = {
+          sx: Math.max(0, minX - pad),
+          sy: Math.max(0, minY - pad),
+          sw: Math.min(w, maxX + pad) - Math.max(0, minX - pad),
+          sh: Math.min(h, maxY + pad) - Math.max(0, minY - pad),
+        };
+      }
+    } catch (e) {
+      // Falhou (ex.: CORS) — sem bbox, drawImage usa tudo
+      console.warn('[B42] qblock bbox detection falhou:', e);
+    }
+  };
+  tryDetect();
+})();
 const GRAVITY    = 780;     // Mais snappy — queda responsiva
 const MAX_FALL   = 420;
 const JUMP_VEL   = -340;    // Pulo base — compensado pela gravidade maior
@@ -5060,15 +5114,14 @@ class Game {
             const customImg = SPRITE_IMGS.qblock;
             if (customImg && customImg.complete && customImg.naturalWidth) {
               ctx.imageSmoothingEnabled = false;
-              // A imagem original tem padding branco em volta do bloco
-              // (2816x1536). Cropamos o quadrado central pra eliminar o
-              // espaço em branco e o bloco preencher o tile inteiro.
-              const sw = customImg.naturalWidth;
-              const sh = customImg.naturalHeight;
-              const side = Math.min(sw, sh);
-              const srcX = (sw - side) / 2;
-              const srcY = (sh - side) / 2;
-              ctx.drawImage(customImg, srcX, srcY, side, side, sx, sy, TILE, TILE);
+              // Usa o bbox detectado (descarta padding branco da PNG).
+              // Se ainda não foi detectado, faz fallback pra imagem inteira.
+              const bb = SPRITE_IMGS.qblockBBox;
+              if (bb) {
+                ctx.drawImage(customImg, bb.sx, bb.sy, bb.sw, bb.sh, sx, sy, TILE, TILE);
+              } else {
+                ctx.drawImage(customImg, sx, sy, TILE, TILE);
+              }
               // Overlay dourado pulsante: replica a sensação de "shimmer"
               // dos 4 frames antigos (cadência ~180ms ≈ 5.5Hz).
               const frameIdx = Math.floor(performance.now() / 180) % 4;
