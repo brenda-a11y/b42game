@@ -22,6 +22,7 @@ const SPRITE_IMGS = {
   brenda_raposa_pet: null,
   raposa_dormindo: null,
   princesa: null,
+  qblock: null,
 };
 (function loadSpriteImages() {
   const load = (key, src) => {
@@ -39,6 +40,8 @@ const SPRITE_IMGS = {
   load('brenda_raposa_pet', 'assets/raposa+brenda/3.png');
   load('raposa_dormindo',   'assets/raposa+brenda/dormindo.png');
   load('princesa', 'assets/princesa.png');
+  // Bloco "?" com molde dourado/azul. Animação de brilho é gerada em runtime.
+  load('qblock', 'assets/qblock.png');
 })();
 const GRAVITY    = 780;     // Mais snappy — queda responsiva
 const MAX_FALL   = 420;
@@ -4879,7 +4882,30 @@ class Game {
           case T.QMUSH:
           case T.QFOCUS:
           case T.QCURIO: {
-            // Animação "brilhando" dos blocos ? (4 frames)
+            // Se a arte custom (assets/qblock.png) estiver carregada, usa
+            // ela com overlay de brilho pulsante; caso contrário cai pros
+            // 4 frames procedurais antigos.
+            const customImg = SPRITE_IMGS.qblock;
+            if (customImg && customImg.complete && customImg.naturalWidth) {
+              ctx.imageSmoothingEnabled = false;
+              ctx.drawImage(customImg, sx, sy, TILE, TILE);
+              // Overlay dourado pulsante: replica a sensação de "shimmer"
+              // dos 4 frames antigos (cadência ~180ms ≈ 5.5Hz).
+              const frameIdx = Math.floor(performance.now() / 180) % 4;
+              // Frames 0,1,2,3 → alphas distintos pra criar "respiração" do brilho
+              const alphas = [0.04, 0.12, 0.22, 0.12];
+              const a = alphas[frameIdx];
+              if (a > 0) {
+                ctx.save();
+                ctx.globalAlpha = a;
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.fillStyle = '#fff5a1';
+                ctx.fillRect(sx, sy, TILE, TILE);
+                ctx.restore();
+              }
+              continue; // Já desenhou — pula o drawImage padrão abaixo
+            }
+            // Fallback: animação 4-frame procedural
             const frames = SPR.qblockFrames;
             if (frames && frames.length) {
               const idx = Math.floor(performance.now() / 180) % frames.length;
