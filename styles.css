@@ -4,26 +4,34 @@
    ============================================================ */
 
 :root {
-  --b42-purple:       #6a2dbf;
-  --b42-purple-light: #a273f5;
-  --b42-purple-dark:  #2a1454;
-  --b42-orange:       #ff9c1d;
-  --b42-orange-dark:  #d65a00;
-  --b42-yellow:       #ffe14f;
-  --b42-cream:        #fff5e1;
-  --b42-red:          #ff3838;
-  --b42-pink:         #ff4fa3;
-  --b42-cyan:         #4fd6ff;
-  --b42-green:        #2ce06f;
-  --b42-lime:         #b3ff3a;
-  --b42-magenta:      #d24fff;
+  /* Paleta MEDIEVAL — pergaminho, ouro velho, vinho real, floresta profunda */
+  --b42-purple:       #4a1f6e; /* roxo manto real */
+  --b42-purple-light: #7c54a8;
+  --b42-purple-dark:  #1d0a36;
+  --b42-orange:       #c8901d; /* ouro velho (não mais laranja gritante) */
+  --b42-orange-dark:  #8e6212;
+  --b42-yellow:       #e6c050; /* dourado pergaminho */
+  --b42-cream:        #f1e2b8; /* pergaminho claro */
+  --b42-red:          #a8211a; /* vermelho-vinho heráldico */
+  --b42-pink:         #b03a5e; /* rosa-vinho desbotado */
+  --b42-cyan:         #4a7a9b; /* azul real noturno */
+  --b42-green:        #4a6b2f; /* verde floresta */
+  --b42-lime:         #88a64a;
+  --b42-magenta:      #8a3a8a;
 
-  /* Gradientes vivos para botões e UI moderna */
-  --grad-primary: linear-gradient(135deg, #ff9c1d 0%, #ff4fa3 50%, #d24fff 100%);
-  --grad-second:  linear-gradient(135deg, #4fd6ff 0%, #6a2dbf 100%);
-  --grad-danger:  linear-gradient(135deg, #ff3838 0%, #ff9c1d 100%);
-  --grad-success: linear-gradient(135deg, #2ce06f 0%, #4fd6ff 100%);
-  --grad-ghost:   linear-gradient(135deg, rgba(255,156,29,0.15) 0%, rgba(210,79,255,0.15) 100%);
+  /* Tons de pedra/madeira pra cenário medieval */
+  --b42-stone:        #4f4438;
+  --b42-stone-dark:   #2a241d;
+  --b42-wood:         #5a3a1d;
+  --b42-parchment:    #e8d8a8;
+  --b42-leather:      #6a4828;
+
+  /* Gradientes em tom heráldico */
+  --grad-primary: linear-gradient(135deg, #c8901d 0%, #a8211a 60%, #6e1813 100%);
+  --grad-second:  linear-gradient(135deg, #4a7a9b 0%, #4a1f6e 100%);
+  --grad-danger:  linear-gradient(135deg, #a8211a 0%, #c8901d 100%);
+  --grad-success: linear-gradient(135deg, #4a6b2f 0%, #88a64a 100%);
+  --grad-ghost:   linear-gradient(135deg, rgba(200,144,29,0.15) 0%, rgba(168,33,26,0.15) 100%);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -63,8 +71,9 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Noite num castelo: pedra escura ao fundo, brasa de tocha em volta */
   background:
-    radial-gradient(ellipse at center, #2a1454 0%, #0a0420 60%, #000 100%);
+    radial-gradient(ellipse at center, #2a1d12 0%, #14110b 50%, #050402 100%);
   padding: 12px;
 }
 
@@ -72,9 +81,10 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   content: '';
   position: absolute;
   inset: 0;
+  /* Tochas distantes lançando luz quente nos cantos */
   background:
-    radial-gradient(circle at 20% 30%, rgba(247,148,29,0.08), transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(139,95,191,0.08), transparent 40%);
+    radial-gradient(circle at 18% 28%, rgba(200,144,29,0.10), transparent 38%),
+    radial-gradient(circle at 82% 72%, rgba(168,33,26,0.08), transparent 40%);
   pointer-events: none;
 }
 
@@ -265,9 +275,10 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   align-items: center;
   justify-content: center;
   padding: 20px;
+  /* Salão do castelo à noite: pedra + tocha quente */
   background:
-    radial-gradient(ellipse at center, rgba(106,45,191,0.35) 0%, rgba(10,4,30,0.96) 70%),
-    linear-gradient(135deg, rgba(255,79,163,0.12), rgba(79,214,255,0.12));
+    radial-gradient(ellipse at center, rgba(74,31,110,0.32) 0%, rgba(8,5,12,0.96) 72%),
+    linear-gradient(135deg, rgba(200,144,29,0.10), rgba(168,33,26,0.08));
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   animation: ov-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -1028,12 +1039,15 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 }
 
 .level-card {
-  background: #000;
+  /* Card no estilo "tábua de pergaminho com moldura de ouro velho" */
+  background: linear-gradient(135deg, rgba(74,31,110,0.5), rgba(20,10,30,0.95));
   border: 4px solid var(--b42-orange);
   padding: 18px 14px;
   text-align: center;
   cursor: pointer;
-  box-shadow: 5px 5px 0 var(--b42-purple);
+  box-shadow:
+    5px 5px 0 var(--b42-purple-dark),
+    inset 0 0 0 1px rgba(241,226,184,0.18);
   font-family: 'Press Start 2P', monospace;
   transition: transform 0.15s, box-shadow 0.15s;
 }
@@ -1083,14 +1097,16 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .dialog-inner {
   max-width: 780px;
   width: 100%;
-  background: #000;
-  border: 4px solid #fff;
+  /* Pergaminho desbotado sobre madeira escura */
+  background: linear-gradient(180deg, #2a1d12 0%, #1a1108 100%);
+  border: 4px solid var(--b42-cream);
   outline: 4px solid #000;
   padding: 32px 40px;
   box-shadow:
     inset 0 0 0 2px #000,
     inset 0 0 0 6px var(--b42-orange),
-    10px 10px 0 rgba(0,0,0,0.55);
+    inset 0 0 60px rgba(200,144,29,0.08),
+    10px 10px 0 rgba(0,0,0,0.6);
   text-align: center;
 }
 
@@ -1575,13 +1591,19 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .menu-decor .floater {
   position: absolute;
   font-size: 22px;
-  opacity: 0.7;
-  text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
+  opacity: 0.55;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.7);
   animation: floater-drift 7s linear infinite;
 }
-.menu-decor .floater.coin { color: #ffd43b; animation-duration: 6s; font-size: 20px; }
-.menu-decor .floater.star { color: #fff5a1; animation-duration: 8s; font-size: 18px; }
-.menu-decor .floater.mushroom { color: #ff5050; animation-duration: 9s; font-size: 22px; }
+/* Símbolos heráldicos: escudo, coroa, espada, flor-de-lis */
+.menu-decor .floater.shield { color: #c8901d; animation-duration: 9s; font-size: 22px; }
+.menu-decor .floater.crown  { color: #e6c050; animation-duration: 8s; font-size: 24px; }
+.menu-decor .floater.sword  { color: #b8b8c4; animation-duration: 10s; font-size: 22px; }
+.menu-decor .floater.scroll { color: #c8901d; animation-duration: 7s; font-size: 20px; }
+/* Compatibilidade com classes antigas, caso fiquem em algum lugar */
+.menu-decor .floater.coin { color: #e6c050; animation-duration: 8s; font-size: 18px; }
+.menu-decor .floater.star { color: #f1e2b8; animation-duration: 9s; font-size: 18px; }
+.menu-decor .floater.mushroom { color: #a8211a; animation-duration: 10s; font-size: 20px; }
 .menu-decor .floater:nth-child(1) { left: 5%; top: -10%; animation-delay: 0s; }
 .menu-decor .floater:nth-child(2) { left: 18%; top: -20%; animation-delay: 1.2s; }
 .menu-decor .floater:nth-child(3) { left: 32%; top: -15%; animation-delay: 2.4s; }
@@ -1603,9 +1625,9 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 #ov-menu .big-title {
   animation: title-bounce 2.6s ease-in-out infinite;
   text-shadow:
-    3px 3px 0 #ff3838,
-    -1px -1px 0 #ffd43b,
-    0 0 20px rgba(255,79,163,0.5);
+    3px 3px 0 #6e1813,
+    -1px -1px 0 #e6c050,
+    0 0 22px rgba(200,144,29,0.55);
 }
 #ov-menu .brand-stamp {
   animation: b42ad-flash 1.2s ease-in-out infinite alternate;

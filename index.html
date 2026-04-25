@@ -20,7 +20,7 @@
       <div id="hud" class="hidden">
         <div class="hud-group">
           <div class="hud-block">
-            <span class="hud-label">BRENDA</span>
+            <span class="hud-label">⚔ HEROÍNA</span>
             <span id="hud-score" class="hud-val">000000</span>
           </div>
           <div class="hud-block">
@@ -30,11 +30,11 @@
         </div>
         <div class="hud-group hud-center">
           <div class="hud-block">
-            <span class="hud-label">MUNDO</span>
+            <span class="hud-label">REINO</span>
             <span id="hud-world" class="hud-val">1-1</span>
           </div>
           <div class="hud-block hud-energy-wrap">
-            <span class="hud-label">ENERGIA</span>
+            <span class="hud-label">VIGOR</span>
             <div class="hud-energy"><div id="hud-energy-fill"></div></div>
           </div>
         </div>
@@ -46,7 +46,7 @@
             </div>
           </div>
           <div class="hud-block">
-            <span class="hud-label">PODER</span>
+            <span class="hud-label">ARTEFATO</span>
             <span id="hud-power" class="hud-val"></span>
           </div>
         </div>
@@ -60,37 +60,37 @@
 
       <!-- Menu Principal -->
       <div id="ov-menu" class="overlay">
-        <!-- Moedinhas e estrelas flutuantes de fundo (decorativo) -->
+        <!-- Símbolos heráldicos flutuantes de fundo (decorativo) -->
         <div class="menu-decor" aria-hidden="true">
-          <span class="floater coin">●</span>
-          <span class="floater star">★</span>
-          <span class="floater coin">●</span>
-          <span class="floater mushroom">♥</span>
-          <span class="floater star">★</span>
-          <span class="floater coin">●</span>
-          <span class="floater star">★</span>
-          <span class="floater mushroom">♥</span>
-          <span class="floater coin">●</span>
-          <span class="floater star">★</span>
+          <span class="floater shield">⛨</span>
+          <span class="floater crown">♛</span>
+          <span class="floater sword">⚔</span>
+          <span class="floater scroll">⚜</span>
+          <span class="floater crown">♛</span>
+          <span class="floater shield">⛨</span>
+          <span class="floater sword">⚔</span>
+          <span class="floater scroll">⚜</span>
+          <span class="floater shield">⛨</span>
+          <span class="floater crown">♛</span>
         </div>
         <div class="menu-inner">
-          <div class="brand-stamp">B42 EDTECH ★ APRESENTA</div>
+          <div class="brand-stamp">B42 EDTECH ⚔ APRESENTA</div>
           <h1 class="big-title">O RESGATE DA<br/>APRENDIZAGEM<br/><span class="small-title">UMA AVENTURA 2D PELO REINO DO CONHECIMENTO</span></h1>
           <div id="user-badge" class="user-badge hidden">
-            <span class="user-icon">★</span> <span id="user-badge-name">JOGADOR</span>
+            <span class="user-icon">♛</span> <span id="user-badge-name">CAVALEIRA</span>
             <button class="user-logout-btn" data-act="logout" title="Sair">✕</button>
           </div>
           <div class="menu-actions">
-            <button class="mbtn primary" data-act="start">► JOGAR</button>
-            <button class="mbtn" data-act="select">SELECIONAR MUNDO</button>
-            <button class="mbtn" data-act="controls">CONTROLES</button>
-            <a href="ranking.html" class="mbtn" style="text-decoration:none;display:inline-block;text-align:center;">RANKING</a>
-            <button class="mbtn admin-only hidden" data-act="admin">★ PAINEL ADMIN</button>
-            <button class="mbtn ghost" data-act="reset">RESETAR PROGRESSO</button>
+            <button class="mbtn primary" data-act="start">⚔ INICIAR JORNADA</button>
+            <button class="mbtn" data-act="select">ESCOLHER REINO</button>
+            <button class="mbtn" data-act="controls">GUIA DO HERÓI</button>
+            <a href="ranking.html" class="mbtn" style="text-decoration:none;display:inline-block;text-align:center;">SALÃO DOS BRAVOS</a>
+            <button class="mbtn admin-only hidden" data-act="admin">♛ CÂMARA REAL</button>
+            <button class="mbtn ghost" data-act="reset">REFAZER A JORNADA</button>
           </div>
           <div class="credit">
-            Um projeto de <strong>Brenda M.</strong>, <strong>Bruna M.</strong> e <strong>Guilherme G.</strong><br/>
-            © B42 EdTech
+            Forjado por <strong>Brenda M.</strong>, <strong>Bruna M.</strong> e <strong>Guilherme G.</strong><br/>
+            ⚜ B42 EdTech ⚜
           </div>
         </div>
       </div>
@@ -98,7 +98,7 @@
       <!-- Controles -->
       <div id="ov-controls" class="overlay hidden">
         <div class="menu-inner">
-          <h2 class="title">CONTROLES</h2>
+          <h2 class="title">⚔ GUIA DO HERÓI ⚔</h2>
           <table class="ctl-table">
             <tr><td>← →</td><td>ou A/D</td><td>Andar</td></tr>
             <tr><td>↑</td><td>ou W / Espaço</td><td>Pular (até 2 pulos no ar, pulo triplo!)</td></tr>
@@ -118,9 +118,9 @@
       <!-- Seleção de Mundo -->
       <div id="ov-select" class="overlay hidden">
         <div class="menu-inner">
-          <h2 class="title">SELECIONAR MUNDO</h2>
+          <h2 class="title">♛ ESCOLHER REINO ♛</h2>
           <div id="level-grid"></div>
-          <div class="hint">Mundos bloqueados se abrem conforme você avança na campanha.</div>
+          <div class="hint">Reinos selados se abrem conforme você avança na jornada.</div>
           <button class="mbtn" data-act="back">◄ VOLTAR</button>
         </div>
       </div>
@@ -148,41 +148,41 @@
       <!-- Pause -->
       <div id="ov-pause" class="overlay hidden">
         <div class="menu-inner">
-          <h2 class="title">PAUSADO</h2>
-          <button class="mbtn primary" data-act="resume">CONTINUAR</button>
-          <button class="mbtn" data-act="restart">REINICIAR FASE</button>
-          <button class="mbtn" data-act="menu">MENU PRINCIPAL</button>
+          <h2 class="title">⌛ JORNADA PAUSADA</h2>
+          <button class="mbtn primary" data-act="resume">RETOMAR</button>
+          <button class="mbtn" data-act="restart">RECOMEÇAR REINO</button>
+          <button class="mbtn" data-act="menu">SALÃO PRINCIPAL</button>
         </div>
       </div>
 
       <!-- Game Over -->
       <div id="ov-gameover" class="overlay hidden">
         <div class="menu-inner">
-          <h2 class="title danger">GAME OVER</h2>
+          <h2 class="title danger">✝ TOMBASTE EM BATALHA ✝</h2>
           <div class="stats">
-            <div>SCORE: <span id="go-score">0</span></div>
+            <div>HONRA: <span id="go-score">0</span></div>
             <div>CONHECIMENTO: <span id="go-coins">0</span></div>
           </div>
-          <button class="mbtn primary" data-act="retry">► TENTAR NOVAMENTE</button>
-          <button class="mbtn" data-act="menu">MENU PRINCIPAL</button>
+          <button class="mbtn primary" data-act="retry">⚔ REERGUER A ESPADA</button>
+          <button class="mbtn" data-act="menu">SALÃO PRINCIPAL</button>
         </div>
       </div>
 
       <!-- Level Complete -->
       <div id="ov-complete" class="overlay hidden">
         <div class="menu-inner">
-          <h2 class="title victory">FASE CONCLUÍDA!</h2>
+          <h2 class="title victory">♛ REINO LIBERTADO! ♛</h2>
           <div class="stats" id="complete-stats"></div>
           <div class="lesson" id="complete-lesson"></div>
-          <button class="mbtn primary" data-act="next">PRÓXIMA FASE ►</button>
-          <button class="mbtn" data-act="menu">MENU PRINCIPAL</button>
+          <button class="mbtn primary" data-act="next">PRÓXIMO REINO ►</button>
+          <button class="mbtn" data-act="menu">SALÃO PRINCIPAL</button>
         </div>
       </div>
 
       <!-- Victory Final -->
       <div id="ov-victory" class="overlay hidden">
         <div class="menu-inner">
-          <div class="brand-stamp">★ MISSÃO CUMPRIDA ★</div>
+          <div class="brand-stamp">⚔ MISSÃO CUMPRIDA ⚔</div>
           <h2 class="big-title">A APRENDIZAGEM<br/>FOI RESGATADA!</h2>
           <div class="victory-body" id="victory-body"></div>
           <div class="dev-credits">
@@ -202,21 +202,21 @@
       <!-- Tela de Login (aparece antes do menu se não logado) -->
       <div id="ov-login" class="overlay hidden">
         <div class="menu-inner">
-          <div class="brand-stamp">B42 EDTECH</div>
-          <h2 class="title">ENTRAR</h2>
+          <div class="brand-stamp">⚜ B42 EDTECH ⚜</div>
+          <h2 class="title">⚔ ENTRAR NO REINO</h2>
           <form id="login-form" class="auth-form" autocomplete="off">
             <div class="form-group">
-              <label class="form-label">NOME DE JOGADOR</label>
-              <input type="text" id="login-name" class="form-input" placeholder="Seu nome de jogador" maxlength="20" required />
+              <label class="form-label">NOME DA CAVALEIRA</label>
+              <input type="text" id="login-name" class="form-input" placeholder="Seu nome de batalha" maxlength="20" required />
             </div>
             <div class="form-group">
-              <label class="form-label">SENHA</label>
+              <label class="form-label">SENHA SECRETA</label>
               <input type="password" id="login-pass" class="form-input" placeholder="Sua senha" required />
             </div>
             <div id="login-error" class="form-error hidden"></div>
             <button type="submit" class="mbtn primary">► ENTRAR</button>
-            <button type="button" class="mbtn" data-act="show-register">CRIAR CONTA</button>
-            <button type="button" class="mbtn ghost" data-act="guest">JOGAR SEM CONTA</button>
+            <button type="button" class="mbtn" data-act="show-register">FORJAR NOVA CONTA</button>
+            <button type="button" class="mbtn ghost" data-act="guest">PARTIR COMO ANDARILHO</button>
           </form>
         </div>
       </div>
@@ -224,8 +224,8 @@
       <!-- Tela de Cadastro -->
       <div id="ov-register" class="overlay hidden">
         <div class="menu-inner">
-          <div class="brand-stamp">B42 EDTECH</div>
-          <h2 class="title">CADASTRO DE JOGADOR</h2>
+          <div class="brand-stamp">⚜ B42 EDTECH ⚜</div>
+          <h2 class="title">⚔ FORJAR NOVA CAVALEIRA</h2>
           <form id="register-form" class="auth-form" autocomplete="off">
             <div class="form-group">
               <label class="form-label">NOME DE JOGADOR</label>
