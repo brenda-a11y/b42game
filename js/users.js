@@ -24,6 +24,7 @@ const sb = global.SB_CLIENT || null;
 // E-mails com privilégio de admin. Pode ser sobrescrito por
 // window.__B42_ADMIN_EMAILS antes de users.js carregar.
 const ADMIN_EMAILS = (global.__B42_ADMIN_EMAILS || [
+  'guhenrferreirass209@gmail.com',
   'thayla@b42.com.br',
   'brendamarconato1704@gmail.com',
   'admin@b42.com.br',
