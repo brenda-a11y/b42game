@@ -300,7 +300,9 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   inset: 0;
   z-index: 50;
   display: flex;
-  align-items: center;
+  /* `safe center` previne que conteúdo alto seja cortado pelo topo —
+     fallback pra `flex-start` em browsers sem suporte. */
+  align-items: safe center;
   justify-content: center;
   padding: 20px;
   /* Salão do castelo à noite: pedra + tocha quente */
@@ -312,13 +314,15 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   animation: ov-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
   /* Mobile: permitir rolagem em telas curtas pra caber o menu inteiro */
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 }
 
 .menu-inner {
-  max-height: calc(100vh - 40px);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  /* Não trava altura — deixa o overlay rolar como container.
+     Em telas curtas isso garante que TODO conteúdo seja alcançável. */
+  max-height: none;
+  overflow: visible;
 }
 
 .overlay.hidden { display: none; }
@@ -1036,7 +1040,7 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 /* Retrato (sprite do personagem que está falando) */
 .credits-portrait-wrap {
   position: absolute;
-  bottom: 26%; /* logo acima da caixa de texto */
+  bottom: 32%; /* sobe pra não encostar no topo da caixa */
   left: 8%;
   display: flex;
   flex-direction: column;
@@ -1117,7 +1121,11 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
 .credits-text {
   white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
   min-height: 80px;
+  max-width: 100%;
 }
 
 .credits-text strong {
@@ -1167,12 +1175,33 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .credits-skip:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,0.7); }
 
 @media (pointer: coarse), (max-width: 820px) {
-  .credits-portrait { width: 64px; height: 64px; font-size: 40px; }
-  .credits-portrait-name { font-size: 8px; padding: 4px 8px; }
-  .credits-portrait-wrap { left: 5%; bottom: 30%; }
-  .credits-box { font-size: 16px; padding: 14px 18px 20px; min-height: 70px; margin: 0 4vw 16px; }
-  .credits-arrow { font-size: 18px; }
-  .credits-skip { font-size: 8px; padding: 6px 10px; }
+  .credits-portrait { width: 56px; height: 56px; font-size: 34px; border-width: 3px; }
+  .credits-portrait-name { font-size: 8px; padding: 4px 8px; letter-spacing: 0; }
+  /* Sobe bem o retrato no mobile pra que o NOME não encoste no topo
+     da caixa de texto (era o bug reportado). */
+  .credits-portrait-wrap { left: 4%; bottom: 44%; gap: 4px; }
+  .credits-box {
+    font-size: 14px;
+    padding: 10px 14px 16px;
+    min-height: 60px;
+    margin: 0 3vw 12px;
+    line-height: 1.35;
+  }
+  .credits-arrow { font-size: 16px; bottom: 4px; right: 8px; }
+  .credits-skip { font-size: 8px; padding: 5px 8px; top: 8px; right: 8px; }
+}
+
+/* Landscape pequeno (ex.: iPhone SE deitado): caixa ainda mais compacta */
+@media (pointer: coarse) and (max-height: 420px) {
+  .credits-portrait { width: 44px; height: 44px; font-size: 26px; border-width: 2px; }
+  .credits-portrait-name { font-size: 7px; padding: 3px 6px; }
+  .credits-portrait-wrap { left: 3%; bottom: 48%; gap: 3px; }
+  .credits-box {
+    font-size: 13px;
+    padding: 8px 12px 14px;
+    min-height: 50px;
+    margin: 0 2vw 8px;
+  }
 }
 
 /* ============================================================
@@ -1230,10 +1259,19 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 }
 
 @media (pointer: coarse), (max-width: 820px) {
-  .lang-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .lang-card { padding: 8px 10px; font-size: 14px; }
+  .lang-inner { max-width: 96vw; padding: 8px 4px; }
+  .lang-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin: 8px 0 12px;
+    /* Garante que todos os 8 idiomas caibam (4 linhas x 2 colunas) */
+    max-height: none;
+  }
+  .lang-card { padding: 8px 10px; font-size: 14px; gap: 6px; }
   .lang-flag { font-size: 22px; }
   .lang-name { font-size: 8px; }
+  /* Botão CONFIRMAR explícito no fundo, com sticky na bottom da inner */
+  #lang-confirm { width: 80%; max-width: 280px; }
 }
 
 /* Badge do usuario logado no menu */
@@ -2140,11 +2178,46 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   .hud-hearts .heart { font-size: 12px; }
 
   /* Menu principal — tudo menor e compacto */
-  .big-title { font-size: 14px; line-height: 1.2; margin: 0; }
-  .small-title { font-size: 7px; margin-top: 3px; line-height: 1.4; }
+  .big-title { font-size: 14px; line-height: 1.18; margin: 0; }
+  .small-title { font-size: 7px; margin-top: 4px; line-height: 1.4; padding: 0 4px; }
   .subtitle { font-size: 13px; margin: 0; }
   .title { font-size: 12px; }
   .brand-stamp { font-size: 7px; letter-spacing: 1px; margin-bottom: 0; }
+
+  /* Menu PRINCIPAL no mobile: layout em duas colunas pros botões
+     pra evitar lista vertical longa demais. PRIMARY (jogar) ocupa 2 cols. */
+  #ov-menu .menu-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 6px;
+    width: 92%;
+    max-width: 360px;
+    margin: 6px auto 8px;
+  }
+  #ov-menu .menu-actions .mbtn {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    padding: 9px 6px;
+    font-size: 8px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.3),
+      inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  /* Botão PRIMARY (jogar) ocupa as duas colunas, em destaque no topo */
+  #ov-menu .menu-actions .mbtn.primary {
+    grid-column: 1 / -1;
+    font-size: 10px;
+    padding: 12px 8px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.7), 0 0 18px rgba(255,79,163,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -1px 0 rgba(0,0,0,0.3);
+  }
+  /* Ghost (resetar/idioma) ocupa coluna inteira no fim */
+  #ov-menu .menu-actions .mbtn.ghost {
+    grid-column: 1 / -1;
+    font-size: 7px;
+    padding: 7px 6px;
+  }
 
   /* Termos / LGPD compactos */
   .terms-body { font-size: 14px; padding: 10px; max-height: 50vh; }
