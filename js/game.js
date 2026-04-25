@@ -5060,7 +5060,15 @@ class Game {
             const customImg = SPRITE_IMGS.qblock;
             if (customImg && customImg.complete && customImg.naturalWidth) {
               ctx.imageSmoothingEnabled = false;
-              ctx.drawImage(customImg, sx, sy, TILE, TILE);
+              // A imagem original tem padding branco em volta do bloco
+              // (2816x1536). Cropamos o quadrado central pra eliminar o
+              // espaço em branco e o bloco preencher o tile inteiro.
+              const sw = customImg.naturalWidth;
+              const sh = customImg.naturalHeight;
+              const side = Math.min(sw, sh);
+              const srcX = (sw - side) / 2;
+              const srcY = (sh - side) / 2;
+              ctx.drawImage(customImg, srcX, srcY, side, side, sx, sy, TILE, TILE);
               // Overlay dourado pulsante: replica a sensação de "shimmer"
               // dos 4 frames antigos (cadência ~180ms ≈ 5.5Hz).
               const frameIdx = Math.floor(performance.now() / 180) % 4;
