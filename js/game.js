@@ -3765,13 +3765,22 @@ class Game {
     const bodyEl    = document.getElementById('princess-body');
     const portraitEl = document.getElementById('princess-portrait');
     if (speakerEl) speakerEl.textContent = line.speaker;
-    // Define o emoji/sprite do retrato baseado em quem fala
+    // Define o retrato baseado em quem fala. Princesa = PNG real;
+    // jogador(a) = emoji de espada com fundo gradiente.
     if (portraitEl) {
       const isPrincess = /princesa|princess|princesse|prinzessin/i.test(line.speaker);
-      portraitEl.textContent = isPrincess ? '👸' : '⚔️';
-      portraitEl.style.background = isPrincess
-        ? 'linear-gradient(135deg, #ffb3d9, #d24fff)'
-        : 'linear-gradient(135deg, #4fd6ff, #6a2dbf)';
+      if (isPrincess) {
+        portraitEl.textContent = '';
+        portraitEl.style.backgroundImage = 'url(assets/princesa.png)';
+        portraitEl.style.backgroundSize = '140%'; // zoom no rosto
+        portraitEl.style.backgroundPosition = 'center 30%';
+        portraitEl.style.backgroundRepeat = 'no-repeat';
+        portraitEl.style.backgroundColor = '#2a1454';
+      } else {
+        portraitEl.textContent = '⚔️';
+        portraitEl.style.backgroundImage = '';
+        portraitEl.style.background = 'linear-gradient(135deg, #4fd6ff, #6a2dbf)';
+      }
     }
     // Typewriter: revela o texto caractere por caractere
     if (bodyEl) {
