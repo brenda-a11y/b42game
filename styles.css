@@ -46,8 +46,14 @@ html, body {
   overflow: hidden;
   -webkit-font-smoothing: none;
   image-rendering: pixelated;
-  /* Mobile: bloqueia zoom, seleção, highlight de tap */
-  touch-action: none;
+  /* IMPORTANTE: NÃO usar `touch-action: none` aqui — essa propriedade é
+     herdada pela cadeia de ancestrais e impedia qualquer scroll nativo
+     dentro dos overlays no mobile (cadastro, idioma, controles, etc.).
+     `pan-y` permite rolagem vertical nos overlays e ainda bloqueia
+     pinch-zoom/double-tap-zoom indesejados na tela do jogo. O
+     `touch-action: none` foi movido pro canvas e botões de toque, que
+     são os únicos elementos que realmente precisam ignorar gestos. */
+  touch-action: pan-y;
   overscroll-behavior: none;
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -59,6 +65,9 @@ html, body {
 }
 
 button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+/* Canvas e controles de toque: nunca devem rolar a página */
+#game, #touch-controls, .tc-btn { touch-action: none; }
 
 /* ============================================================
    SHELL
@@ -2148,18 +2157,30 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
     outline: 1px solid rgba(106,45,191,0.3);
   }
 
-  /* Overlays rolam e ficam centralizados */
+  /* Overlays rolam no mobile.
+     Truque "margin: auto 0" + "align-items: flex-start": quando o
+     conteúdo cabe na tela, o margin auto centraliza verticalmente.
+     Quando o conteúdo é mais alto que a viewport, o margin auto vira 0
+     e o overlay rola normalmente do topo até o fim — sem topo cortado.
+     touch-action: pan-y libera rolagem vertical (já que body tem pan-y).
+     overscroll-behavior: contain evita bounce/pull-to-refresh. */
   .overlay {
-    padding: 10px 6px;
+    padding: 12px 6px;
     overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    align-items: center;
+    align-items: flex-start;
+    justify-content: center;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
   }
 
   .menu-inner {
     gap: 6px;
     max-width: 94vw;
-    padding: 6px 4px;
+    padding: 8px 4px 16px;
+    flex-shrink: 0;
+    margin: auto 0;
   }
 
   /* HUD compacta */

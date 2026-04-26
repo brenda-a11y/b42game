@@ -221,13 +221,21 @@ function initTouchControls() {
   panel.querySelectorAll('[data-ctl]').forEach(btn => {
     wireTouchButton(btn, btn.dataset.ctl);
   });
-  // Bloqueia scroll/gestos em qualquer toque dentro do shell
+  // Bloqueia scroll/gestos só na ÁREA DE JOGO (fora dos overlays).
+  // Se o toque está dentro de um overlay visível (menu/cadastro/idioma/etc.),
+  // deixa o scroll nativo funcionar pra rolar a tela.
   const shell = document.getElementById('game-shell');
   if (shell) {
-    shell.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
-    // Previne double-tap zoom no iOS
+    shell.addEventListener('touchmove', (e) => {
+      const t = e.target;
+      if (t && t.closest && t.closest('.overlay:not(.hidden)')) return;
+      e.preventDefault();
+    }, { passive: false });
+    // Previne double-tap zoom no iOS, exceto em campos editáveis dentro de overlays
     let lastTouch = 0;
     shell.addEventListener('touchend', (e) => {
+      const t = e.target;
+      if (t && t.closest && t.closest('.overlay:not(.hidden)')) return;
       const now = Date.now();
       if (now - lastTouch < 350) e.preventDefault();
       lastTouch = now;
@@ -5214,7 +5222,11 @@ class Game {
 // ============================================================
 function show(id) {
   const el = document.getElementById(id);
-  if (el) el.classList.remove('hidden');
+  if (el) {
+    el.classList.remove('hidden');
+    // Garante que o overlay sempre apareça rolado pro topo no mobile
+    if (el.classList.contains('overlay')) el.scrollTop = 0;
+  }
 }
 function hide(id) {
   const el = document.getElementById(id);
