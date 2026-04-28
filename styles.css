@@ -2489,6 +2489,17 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   padding-top: 6px;
 }
 
+/* Linha de ações (CONFIRMAR + VOLTAR) abaixo dos cards de dificuldade */
+.diff-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.diff-actions .mbtn { min-width: 200px; }
+
 /* Multiplicador de dificuldade nas telas de score */
 .diff-mul {
   font-family: 'Press Start 2P', monospace;

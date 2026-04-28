@@ -85,7 +85,7 @@
           </div>
           <div class="menu-actions">
             <button class="mbtn primary" data-act="start" data-i18n="menu.start">⚔ INICIAR JORNADA</button>
-            <button class="mbtn" data-act="select" data-i18n="menu.select">ESCOLHER REINO</button>
+            <button class="mbtn" data-act="select" data-i18n="menu.select">SELECIONAR FASE</button>
             <button class="mbtn" data-act="controls" data-i18n="menu.controls">GUIA DO HERÓI</button>
             <a href="ranking.html" class="mbtn" style="text-decoration:none;display:inline-block;text-align:center;" data-i18n="menu.ranking">RANKING</a>
             <button class="mbtn admin-only hidden" data-act="admin" data-i18n="menu.admin">♛ CÂMARA REAL</button>
@@ -137,7 +137,7 @@
           <h2 class="title">⚔ ESCOLHA A DIFICULDADE ⚔</h2>
           <p class="subtitle">A dificuldade afeta vidas, resistência e o cálculo final da pontuação.</p>
           <div class="diff-grid">
-            <button class="diff-card" data-act="diff-easy" data-diff="easy">
+            <button class="diff-card" data-act="diff-pick" data-diff="easy">
               <div class="diff-name">FÁCIL</div>
               <div class="diff-tag">PARA TODAS AS IDADES</div>
               <ul class="diff-bullets">
@@ -147,7 +147,7 @@
               </ul>
               <div class="diff-hint">Recomendado para 60+ anos ou primeiro contato com o jogo</div>
             </button>
-            <button class="diff-card primary" data-act="diff-medium" data-diff="medium">
+            <button class="diff-card" data-act="diff-pick" data-diff="medium">
               <div class="diff-name">MÉDIO</div>
               <div class="diff-tag">EXPERIÊNCIA EQUILIBRADA</div>
               <ul class="diff-bullets">
@@ -157,7 +157,7 @@
               </ul>
               <div class="diff-hint">A jornada como foi originalmente desenhada</div>
             </button>
-            <button class="diff-card" data-act="diff-hard" data-diff="hard">
+            <button class="diff-card" data-act="diff-pick" data-diff="hard">
               <div class="diff-name">DIFÍCIL</div>
               <div class="diff-tag">PARA VETERANOS</div>
               <ul class="diff-bullets">
@@ -168,14 +168,17 @@
               <div class="diff-hint">Pontuação máxima no ranking</div>
             </button>
           </div>
-          <button class="mbtn ghost" data-act="back">◄ VOLTAR</button>
+          <div class="diff-actions">
+            <button class="mbtn primary" id="diff-confirm" data-act="diff-confirm" disabled>► CONFIRMAR</button>
+            <button class="mbtn ghost" data-act="back">◄ VOLTAR</button>
+          </div>
         </div>
       </div>
 
       <!-- Seleção de Mundo -->
       <div id="ov-select" class="overlay hidden">
         <div class="menu-inner">
-          <h2 class="title" data-i18n="select.title">♛ ESCOLHER REINO ♛</h2>
+          <h2 class="title" data-i18n="select.title">♛ SELECIONAR FASE ♛</h2>
           <div id="level-grid"></div>
           <div class="hint" data-i18n="select.hint">Reinos selados se abrem conforme você avança na jornada.</div>
           <button class="mbtn" data-act="back" data-i18n="controls.back">◄ VOLTAR</button>
@@ -215,7 +218,7 @@
           <h2 class="title" data-i18n="pause.title">⌛ JORNADA PAUSADA</h2>
           <button class="mbtn primary" data-act="resume" data-i18n="pause.resume">RETOMAR</button>
           <button class="mbtn" data-act="restart" data-i18n="pause.restart">RECOMEÇAR REINO</button>
-          <button class="mbtn" data-act="menu" data-i18n="pause.menu">SALÃO PRINCIPAL</button>
+          <button class="mbtn" data-act="menu" data-i18n="pause.menu">MENU PRINCIPAL</button>
         </div>
       </div>
 
@@ -228,7 +231,7 @@
             <div><span data-i18n="gameover.coins">CONHECIMENTO</span>: <span id="go-coins">0</span></div>
           </div>
           <button class="mbtn primary" data-act="retry" data-i18n="gameover.retry">⚔ REERGUER A ESPADA</button>
-          <button class="mbtn" data-act="menu" data-i18n="gameover.menu">SALÃO PRINCIPAL</button>
+          <button class="mbtn" data-act="menu" data-i18n="gameover.menu">MENU PRINCIPAL</button>
         </div>
       </div>
 
@@ -239,7 +242,7 @@
           <div class="stats" id="complete-stats"></div>
           <div class="lesson" id="complete-lesson"></div>
           <button class="mbtn primary" data-act="next" data-i18n="complete.next">PRÓXIMO REINO ►</button>
-          <button class="mbtn" data-act="menu" data-i18n="complete.menu">SALÃO PRINCIPAL</button>
+          <button class="mbtn" data-act="menu" data-i18n="complete.menu">MENU PRINCIPAL</button>
         </div>
       </div>
 
@@ -289,7 +292,7 @@
       <div id="ov-register" class="overlay hidden">
         <div class="menu-inner">
           <div class="brand-stamp">⚜ B42 EDTECH ⚜</div>
-          <h2 class="title" data-i18n="auth.register.title">⚔ FORJAR NOVA CAVALEIRA</h2>
+          <h2 class="title" data-i18n="auth.register.title">⚔ CADASTRAR-SE</h2>
           <form id="register-form" class="auth-form" autocomplete="off">
             <div class="form-group">
               <label class="form-label" data-i18n="auth.register.name">NOME DE JOGADOR</label>

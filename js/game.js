@@ -3229,11 +3229,21 @@ class Game {
     try { localStorage.setItem('b42-quest-difficulty', level); } catch (e) {}
   }
   getDifficultyConfig() {
+    // Knobs:
+    //   lives      — vidas iniciais
+    //   invMul     — multiplicador da janela de invencibilidade após dano
+    //   scoreMul   — multiplicador final do score (cálculo no fim)
+    //   enemySkip  — fração de inimigos comuns que NÃO são spawnados
+    //                (0 = todos, 0.5 = pula metade)
+    //   bossHpMul  — multiplicador do HP do chefe final (Boss)
+    //   miniBossHpAdj — ajuste fixo no HP de minibosses (-1 = 1 hit a menos)
+    // Filosofia: FÁCIL é bem fácil; MÉDIO é só um pouco mais difícil que
+    // o fácil; DIFÍCIL é o desafio de verdade.
     switch (this.difficulty) {
-      case 'easy':   return { lives: 5, invMul: 1.6, scoreMul: 0.75, label: 'FÁCIL' };
-      case 'hard':   return { lives: 2, invMul: 0.85, scoreMul: 1.5,  label: 'DIFÍCIL' };
+      case 'easy':   return { lives: 5, invMul: 1.6,  scoreMul: 0.65, enemySkip: 0.50, bossHpMul: 0.4, miniBossHpAdj: -2, label: 'FÁCIL'   };
+      case 'hard':   return { lives: 2, invMul: 0.85, scoreMul: 1.5,  enemySkip: 0,    bossHpMul: 1.0, miniBossHpAdj:  0, label: 'DIFÍCIL' };
       case 'medium':
-      default:       return { lives: 3, invMul: 1.0,  scoreMul: 1.0,  label: 'MÉDIO' };
+      default:       return { lives: 4, invMul: 1.3,  scoreMul: 1.0,  enemySkip: 0.30, bossHpMul: 0.7, miniBossHpAdj: -1, label: 'MÉDIO'   };
     }
   }
   finalScore() {
@@ -3374,6 +3384,7 @@ class Game {
     this.entities = [];
     this.particles = [];
     this.powerPopup = null;
+    this._enemySpawnIdx = 0; // contador pra skip determinístico de inimigos por dificuldade
     for (const sp of this.level.spawns.entities) this._spawnFromDef(sp);
     // Re-spawna Raposa e monta automaticamente se a jogadora vinha montada
     if (prevHadMount) {
@@ -3409,19 +3420,48 @@ class Game {
     AUDIO.startMusic(def.music || 'overworld');
   }
 
+  // Decide se um inimigo comum deve ser pulado em função da dificuldade.
+  // Skip é determinístico (mesmos inimigos pulados a cada retry da fase),
+  // baseado num contador resetado a cada loadLevel.
+  _shouldSkipEnemy() {
+    const cfg = this.getDifficultyConfig();
+    const skip = cfg.enemySkip || 0;
+    if (skip <= 0) return false;
+    this._enemySpawnIdx = (this._enemySpawnIdx || 0) + 1;
+    const everyN = Math.max(2, Math.round(1 / skip));
+    return (this._enemySpawnIdx % everyN === 0);
+  }
+
   _spawnFromDef(sp) {
+    const cfg = this.getDifficultyConfig();
     switch (sp.type) {
       case 'coin':   this.entities.push(new Coin(sp.x, sp.y)); break;
-      case 'walker': this.entities.push(new Walker(sp.x, sp.y)); break;
-      case 'jumper': this.entities.push(new Jumper(sp.x, sp.y)); break;
-      case 'flyer':  this.entities.push(new Flyer(sp.x, sp.y)); break;
-      case 'boss':   this.entities.push(new Boss(sp.x, sp.y)); break;
+      case 'walker': if (!this._shouldSkipEnemy()) this.entities.push(new Walker(sp.x, sp.y)); break;
+      case 'jumper': if (!this._shouldSkipEnemy()) this.entities.push(new Jumper(sp.x, sp.y)); break;
+      case 'flyer':  if (!this._shouldSkipEnemy()) this.entities.push(new Flyer(sp.x, sp.y)); break;
+      case 'boss': {
+        const boss = new Boss(sp.x, sp.y);
+        // Aplica multiplicador de HP do chefe pela dificuldade.
+        const newHp = Math.max(1, Math.round((boss.hp || 10) * (cfg.bossHpMul || 1)));
+        boss.hp = newHp;
+        boss.maxHp = newHp;
+        this.entities.push(boss);
+        break;
+      }
       case 'life':   this.entities.push(new LifePickup(sp.x, sp.y)); break;
       case 'weapon_focus':     this.entities.push(new WeaponPickup(sp.x, sp.y, 'focus')); break;
       case 'weapon_curiosity': this.entities.push(new WeaponPickup(sp.x, sp.y, 'curiosity')); break;
       case 'weapon_method':    this.entities.push(new WeaponPickup(sp.x, sp.y, 'method')); break;
-      case 'miniboss_texto':  this.entities.push(new MiniBoss(sp.x, sp.y, 'TEXTO MAÇANTE', 4)); break;
-      case 'miniboss_desmot': this.entities.push(new MiniBoss(sp.x, sp.y, 'DESMOTIVAÇÃO', 5)); break;
+      case 'miniboss_texto': {
+        const hp = Math.max(1, 4 + (cfg.miniBossHpAdj || 0));
+        this.entities.push(new MiniBoss(sp.x, sp.y, 'TEXTO MAÇANTE', hp));
+        break;
+      }
+      case 'miniboss_desmot': {
+        const hp = Math.max(1, 5 + (cfg.miniBossHpAdj || 0));
+        this.entities.push(new MiniBoss(sp.x, sp.y, 'DESMOTIVAÇÃO', hp));
+        break;
+      }
       case 'flag':   this.entities.push(new Flag(sp.x, sp.y)); break;
       case 'mount':  this.entities.push(new Mount(sp.x, sp.y)); break;
       case 'pergaminho': this.entities.push(new PergaminhoItem(sp.x, sp.y)); break;
@@ -3429,9 +3469,9 @@ class Game {
       case 'pipe_secret': this.entities.push(new PipeSecret(sp.x, sp.y)); break;
       case 'pipe_minigame': this.entities.push(new PipeSecret(sp.x, sp.y, 'minigame')); break;
       case 'bullet_spawner': this.entities.push(new BulletBillSpawner(sp.x, sp.y)); break;
-      case 'piranha': this.entities.push(new Piranha(sp.x, sp.y)); break;
-      case 'fish_pink':  this.entities.push(new CheepCheep(sp.x, sp.y, 'pink')); break;
-      case 'fish_green': this.entities.push(new CheepCheep(sp.x, sp.y, 'green')); break;
+      case 'piranha': if (!this._shouldSkipEnemy()) this.entities.push(new Piranha(sp.x, sp.y)); break;
+      case 'fish_pink':  if (!this._shouldSkipEnemy()) this.entities.push(new CheepCheep(sp.x, sp.y, 'pink')); break;
+      case 'fish_green': if (!this._shouldSkipEnemy()) this.entities.push(new CheepCheep(sp.x, sp.y, 'green')); break;
       case 'super_orb':  this.entities.push(new SuperOrb(sp.x, sp.y)); break;
     }
   }
@@ -5316,6 +5356,9 @@ function hideAll() {
     .forEach(hide);
 }
 
+// Dificuldade pré-selecionada pelo jogador (antes de confirmar).
+let _diffPick = null;
+
 // Marca visualmente o card da dificuldade ativa no overlay de seleção.
 function markDifficultySelection(active) {
   const cards = document.querySelectorAll('#ov-difficulty .diff-card');
@@ -5323,6 +5366,14 @@ function markDifficultySelection(active) {
     if (c.dataset.diff === active) c.classList.add('active');
     else c.classList.remove('active');
   });
+}
+
+// Habilita/desabilita o botão CONFIRMAR conforme houve escolha.
+function updateDiffConfirmState() {
+  const btn = document.getElementById('diff-confirm');
+  if (!btn) return;
+  if (_diffPick) btn.removeAttribute('disabled');
+  else btn.setAttribute('disabled', '');
 }
 
 function buildLevelGrid() {
@@ -5570,13 +5621,12 @@ function boot() {
   // pra qualquer ação não mapeada explicitamente abaixo.
   const UI_SFX = {
     // Ações primárias / confirmação positiva
-    'start':       'confirm',
-    'diff-easy':   'confirm',
-    'diff-medium': 'confirm',
-    'diff-hard':   'confirm',
-    'next':        'confirm',
-    'retry':       'confirm',
-    'resume':      'confirm',
+    'start':        'confirm',
+    'diff-confirm': 'confirm',
+    'diff-pick':    'toggle',
+    'next':         'confirm',
+    'retry':        'confirm',
+    'resume':       'confirm',
     // Voltar / cancelar
     'back':        'back',
     'show-login':  'back',
@@ -5614,19 +5664,29 @@ function boot() {
       switch (act) {
         case 'start':
           // Abre primeiro a seleção de dificuldade. A jornada começa só
-          // quando o jogador escolher um nível (FÁCIL / MÉDIO / DIFÍCIL).
+          // quando o jogador escolher um nível (FÁCIL / MÉDIO / DIFÍCIL)
+          // E confirmar no botão CONFIRMAR.
+          _diffPick = game.difficulty || 'medium';
           hideAll(); show('ov-difficulty');
-          markDifficultySelection(game.difficulty);
+          markDifficultySelection(_diffPick);
+          updateDiffConfirmState();
           break;
-        case 'diff-easy':
-        case 'diff-medium':
-        case 'diff-hard': {
-          const lvl = act === 'diff-easy' ? 'easy' : act === 'diff-hard' ? 'hard' : 'medium';
-          game.setDifficulty(lvl);
-          hideAll();
-          game.startGame();
+        case 'diff-pick': {
+          const picked = btn.dataset.diff;
+          if (picked === 'easy' || picked === 'medium' || picked === 'hard') {
+            _diffPick = picked;
+            markDifficultySelection(_diffPick);
+            updateDiffConfirmState();
+          }
           break;
         }
+        case 'diff-confirm':
+          if (_diffPick) {
+            game.setDifficulty(_diffPick);
+            hideAll();
+            game.startGame();
+          }
+          break;
         case 'select':
           hideAll(); show('ov-select'); buildLevelGrid();
           break;
