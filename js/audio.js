@@ -167,6 +167,49 @@ const AUDIO = {
   },
 
   // ============================================================
+  // SFX DE MENU / SISTEMA — feedback sonoro pra UI
+  // ============================================================
+  // Toque sutil ao passar mouse / focus em botão (não tem som no mobile, ok)
+  hover() {
+    this._play(880, 0.025, 'square', 0.05);
+  },
+
+  // Confirmação positiva — usada em ações primárias (iniciar jogo, login,
+  // escolher dificuldade, próximo nível, etc.). Duas notas ascendentes.
+  confirm() {
+    this._play(660, 0.06, 'square', 0.12);
+    setTimeout(() => this._play(990, 0.10, 'square', 0.12), 60);
+  },
+
+  // Cancelar / voltar — duas notas descendentes
+  back() {
+    this._play(523, 0.06, 'square', 0.10);
+    setTimeout(() => this._play(330, 0.09, 'square', 0.10), 55);
+  },
+
+  // Negativo / erro — bip curto grave (campo de form com erro etc.)
+  error() {
+    this._play(180, 0.18, 'sawtooth', 0.14);
+  },
+
+  // Abertura de overlay/menu — deslize curto
+  menuOpen() {
+    this._play(440, 0.04, 'triangle', 0.10);
+    setTimeout(() => this._play(660, 0.06, 'triangle', 0.10), 40);
+  },
+
+  // Fechamento de overlay/menu
+  menuClose() {
+    this._play(660, 0.04, 'triangle', 0.10);
+    setTimeout(() => this._play(440, 0.06, 'triangle', 0.10), 40);
+  },
+
+  // Toggle / chave (aplicado a checkboxes, escolha de idioma etc.)
+  toggle() {
+    this._play(740, 0.04, 'square', 0.10);
+  },
+
+  // ============================================================
   // MÚSICA DE FUNDO (loop chip-tune simples)
   // ============================================================
   startMusic(track = 'overworld') {

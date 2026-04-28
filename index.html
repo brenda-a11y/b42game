@@ -130,6 +130,48 @@
         </div>
       </div>
 
+      <!-- Seleção de Dificuldade (aparece antes de iniciar a jornada) -->
+      <div id="ov-difficulty" class="overlay hidden">
+        <div class="menu-inner">
+          <div class="brand-stamp">⚜ B42 EDTECH ⚜</div>
+          <h2 class="title">⚔ ESCOLHA A DIFICULDADE ⚔</h2>
+          <p class="subtitle">A dificuldade afeta vidas, resistência e o cálculo final da pontuação.</p>
+          <div class="diff-grid">
+            <button class="diff-card" data-act="diff-easy" data-diff="easy">
+              <div class="diff-name">FÁCIL</div>
+              <div class="diff-tag">PARA TODAS AS IDADES</div>
+              <ul class="diff-bullets">
+                <li>5 vidas iniciais</li>
+                <li>Mais tempo de invencibilidade após dano</li>
+                <li>Multiplicador de pontos: <strong>×0,75</strong></li>
+              </ul>
+              <div class="diff-hint">Recomendado para 60+ anos ou primeiro contato com o jogo</div>
+            </button>
+            <button class="diff-card primary" data-act="diff-medium" data-diff="medium">
+              <div class="diff-name">MÉDIO</div>
+              <div class="diff-tag">EXPERIÊNCIA EQUILIBRADA</div>
+              <ul class="diff-bullets">
+                <li>3 vidas iniciais</li>
+                <li>Resistência padrão</li>
+                <li>Multiplicador de pontos: <strong>×1,00</strong></li>
+              </ul>
+              <div class="diff-hint">A jornada como foi originalmente desenhada</div>
+            </button>
+            <button class="diff-card" data-act="diff-hard" data-diff="hard">
+              <div class="diff-name">DIFÍCIL</div>
+              <div class="diff-tag">PARA VETERANOS</div>
+              <ul class="diff-bullets">
+                <li>2 vidas iniciais</li>
+                <li>Menos invencibilidade após dano</li>
+                <li>Multiplicador de pontos: <strong>×1,50</strong></li>
+              </ul>
+              <div class="diff-hint">Pontuação máxima no ranking</div>
+            </button>
+          </div>
+          <button class="mbtn ghost" data-act="back">◄ VOLTAR</button>
+        </div>
+      </div>
+
       <!-- Seleção de Mundo -->
       <div id="ov-select" class="overlay hidden">
         <div class="menu-inner">
@@ -237,8 +279,8 @@
             </div>
             <div id="login-error" class="form-error hidden"></div>
             <button type="submit" class="mbtn primary" data-i18n="auth.login.submit">► ENTRAR</button>
-            <button type="button" class="mbtn" data-act="show-register" data-i18n="auth.login.toRegister">FORJAR NOVA CONTA</button>
-            <button type="button" class="mbtn ghost" data-act="guest" data-i18n="auth.login.guest">PARTIR COMO ANDARILHO</button>
+            <button type="button" class="mbtn" data-act="show-register" data-i18n="auth.login.toRegister">CADASTRAR-SE</button>
+            <button type="button" class="mbtn ghost" data-act="guest" data-i18n="auth.login.guest">JOGAR SEM LOGIN</button>
           </form>
         </div>
       </div>

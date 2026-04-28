@@ -2390,3 +2390,129 @@ button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
   .tc-actions { right: calc(6px + env(safe-area-inset-right)); }
   .tc-pause, .tc-sound { width: 34px; height: 34px; font-size: 10px; }
 }
+
+/* ============================================================
+   SELEÇÃO DE DIFICULDADE
+   ============================================================ */
+.diff-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  width: 100%;
+  max-width: 760px;
+  margin: 14px auto 18px;
+}
+.diff-card {
+  font-family: 'VT323', monospace;
+  text-align: left;
+  background: linear-gradient(135deg, rgba(42,20,84,0.95) 0%, rgba(106,45,191,0.85) 100%);
+  border: 3px solid #000;
+  border-radius: 12px;
+  color: #fff;
+  padding: 14px 14px 16px;
+  cursor: pointer;
+  box-shadow:
+    0 6px 0 rgba(0,0,0,0.7),
+    0 0 18px rgba(106,45,191,0.4),
+    inset 0 2px 0 rgba(255,255,255,0.3),
+    inset 0 -2px 0 rgba(0,0,0,0.35);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.diff-card:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.12) saturate(1.1);
+  box-shadow:
+    0 9px 0 rgba(0,0,0,0.7),
+    0 0 26px rgba(255,79,163,0.55),
+    inset 0 2px 0 rgba(255,255,255,0.4),
+    inset 0 -2px 0 rgba(0,0,0,0.35);
+}
+.diff-card:active { transform: translateY(2px); }
+.diff-card.primary {
+  background: linear-gradient(135deg, #ff4fa3 0%, #d24fff 100%);
+  border-color: #ffd43b;
+}
+.diff-card.active {
+  outline: 3px solid var(--b42-yellow, #ffd43b);
+  outline-offset: 2px;
+}
+.diff-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: var(--b42-yellow, #ffd43b);
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 0 #000;
+  margin-bottom: 2px;
+}
+.diff-tag {
+  font-size: 14px;
+  color: #ffe9b8;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.diff-bullets {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.diff-bullets li {
+  position: relative;
+  padding-left: 14px;
+  color: #fff;
+}
+.diff-bullets li::before {
+  content: '►';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--b42-orange, #ff9c1d);
+  font-size: 11px;
+}
+.diff-bullets strong {
+  color: var(--b42-yellow, #ffd43b);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.diff-hint {
+  margin-top: auto;
+  font-size: 13px;
+  color: #b9a8e8;
+  font-style: italic;
+  border-top: 1px dashed rgba(255,255,255,0.2);
+  padding-top: 6px;
+}
+
+/* Multiplicador de dificuldade nas telas de score */
+.diff-mul {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--b42-yellow, #ffd43b);
+  letter-spacing: 1px;
+}
+.score-final {
+  color: var(--b42-yellow, #ffd43b);
+  font-weight: bold;
+}
+
+@media (max-width: 720px) {
+  .diff-grid { grid-template-columns: 1fr; max-width: 92vw; gap: 10px; }
+  .diff-name { font-size: 12px; }
+  .diff-bullets { font-size: 14px; }
+  .diff-hint { font-size: 12px; }
+}
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 480px) {
+  .diff-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 96vw; }
+  .diff-card { padding: 8px 8px 10px; }
+  .diff-name { font-size: 10px; letter-spacing: 1px; }
+  .diff-tag { font-size: 11px; }
+  .diff-bullets { font-size: 12px; }
+  .diff-bullets strong { font-size: 9px; }
+  .diff-hint { font-size: 10px; padding-top: 3px; }
+}

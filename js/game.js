@@ -898,17 +898,20 @@ class Player extends Entity {
 
   takeDamage(game) {
     if (this.invincible > 0) return;
+    // Multiplicador de invencibilidade após dano vem da dificuldade:
+    // FÁCIL = mais janela de segurança, DIFÍCIL = menos.
+    const invMul = (game && game.getDifficultyConfig) ? game.getDifficultyConfig().invMul : 1.0;
     // Montaria absorve o primeiro hit — ela foge e player fica brevemente invencível
     if (this.mount) {
       this.mount.dismount(this);
-      this.invincible = 1.5;
+      this.invincible = 1.5 * invMul;
       AUDIO.hurt();
       return;
     }
     game.triggerShake(0.2);
     if (this.state === 'big') {
       this.setForm('small');
-      this.invincible = 2;
+      this.invincible = 2 * invMul;
       AUDIO.hurt();
     } else {
       this.die(game);
@@ -1091,19 +1094,9 @@ class Player extends Entity {
     const sw = sprite.width  || sprite.naturalWidth  || targetW;
     const sh = sprite.height || sprite.naturalHeight || targetH;
 
-    // Tom de pulso "respiração": escala vertical sutil sempre que está no
-    // chão; amplitude maior quando parada, menor enquanto anda.
-    let drawH = targetH;
-    let drawYAdj = drawY;
-    if (this.onGround) {
-      const t = performance.now() / 1000;
-      const idle = !input.left && !input.right && Math.abs(this.vx) < 6;
-      const amp = idle ? 0.022 : 0.010; // ±2.2% parada, ±1% em movimento
-      const pulse = Math.sin(t * (idle ? 2.1 : 3.2)) * amp;
-      drawH = Math.round(targetH * (1 + pulse));
-      // Mantém os pés na mesma linha; só o topo "respira".
-      drawYAdj = drawY + (targetH - drawH);
-    }
+    // Brenda fica completamente estática parada (sem pulso de respiração).
+    const drawH = targetH;
+    const drawYAdj = drawY;
 
     if (this.facing < 0) {
       ctx.save();
@@ -3213,6 +3206,40 @@ class Game {
     this.speechBubble = null;
     this.nextSpeechAt = 6; // primeiro balão aos 6s de play
     this.playTime = 0;
+    // ============================================================
+    // DIFICULDADE — afeta vidas, resistência e cálculo final do score.
+    // O score acumula normalmente em jogo; o multiplicador é aplicado
+    // apenas nas telas finais (game over / fase concluída / vitória)
+    // e ao persistir pontuação no ranking. NÃO altera jogabilidade
+    // em modo MÉDIO (mantém comportamento original do jogo).
+    // ============================================================
+    this.difficulty = this._loadDifficulty();
+  }
+
+  _loadDifficulty() {
+    try {
+      const v = localStorage.getItem('b42-quest-difficulty');
+      if (v === 'easy' || v === 'medium' || v === 'hard') return v;
+    } catch (e) {}
+    return 'medium';
+  }
+  setDifficulty(level) {
+    if (level !== 'easy' && level !== 'medium' && level !== 'hard') return;
+    this.difficulty = level;
+    try { localStorage.setItem('b42-quest-difficulty', level); } catch (e) {}
+  }
+  getDifficultyConfig() {
+    switch (this.difficulty) {
+      case 'easy':   return { lives: 5, invMul: 1.6, scoreMul: 0.75, label: 'FÁCIL' };
+      case 'hard':   return { lives: 2, invMul: 0.85, scoreMul: 1.5,  label: 'DIFÍCIL' };
+      case 'medium':
+      default:       return { lives: 3, invMul: 1.0,  scoreMul: 1.0,  label: 'MÉDIO' };
+    }
+  }
+  finalScore() {
+    if (!this.player) return 0;
+    const cfg = this.getDifficultyConfig();
+    return Math.round((this.player.score || 0) * cfg.scoreMul);
   }
 
   showPowerPopup(kind) {
@@ -3272,13 +3299,15 @@ class Game {
   }
   _saveProgress() {
     try { localStorage.setItem('b42-quest-save', JSON.stringify(this.save)); } catch (e) {}
-    // Atualiza ranking do usuario logado
+    // Atualiza ranking do usuario logado — usa o score final já com o
+    // multiplicador da dificuldade aplicado, pra o ranking refletir o
+    // nível de desafio escolhido.
     if (typeof UserSystem !== 'undefined') {
       const user = UserSystem.getCurrentUser();
       if (user && this.player) {
         UserSystem.updatePlayerScore(
           user.playerName,
-          this.player.score,
+          this.finalScore(),
           this.player.coins,
           this.save.unlocked - 1,
           this.player.kills || 0
@@ -3307,6 +3336,7 @@ class Game {
     if (IS_TOUCH) requestFullscreen();
     this.levelIdx = 0;
     this.player = null;
+    this._startingLives = this.getDifficultyConfig().lives;
     this.loadLevel(0);
   }
 
@@ -3314,7 +3344,8 @@ class Game {
     this.levelIdx = idx;
     const def = LEVELS[idx];
     this.level = new LevelData(def);
-    const prevLives = this.player ? this.player.lives : 3;
+    const startingLives = (typeof this._startingLives === 'number') ? this._startingLives : this.getDifficultyConfig().lives;
+    const prevLives = this.player ? this.player.lives : startingLives;
     const prevCoins = this.player ? this.player.coins : 0;
     const prevKills = this.player ? (this.player.kills || 0) : 0;
     const prevScore = this.player ? this.player.score : 0;
@@ -3474,7 +3505,13 @@ class Game {
     this.state = 'gameover';
     AUDIO.stopMusic();
     hideTouchControls();
-    document.getElementById('go-score').textContent = this.player.score;
+    const cfg = this.getDifficultyConfig();
+    const finalScore = this.finalScore();
+    const goScoreEl = document.getElementById('go-score');
+    if (goScoreEl) {
+      goScoreEl.innerHTML = finalScore +
+        ' <span class="diff-mul">[' + cfg.label + ' × ' + cfg.scoreMul.toFixed(2).replace('.', ',') + ']</span>';
+    }
     document.getElementById('go-coins').textContent = this.player.coins;
     hideAll();
     show('ov-gameover');
@@ -3505,17 +3542,22 @@ class Game {
     AUDIO.levelClear();
     AUDIO.stopMusic();
     hideTouchControls();
+    const cfg = this.getDifficultyConfig();
+    const finalScore = this.finalScore();
+    const mulLabel = cfg.scoreMul.toFixed(2).replace('.', ',');
     document.getElementById('complete-stats').innerHTML =
       `<div>CONHECIMENTO: <span>× ${this.player.coins}</span></div>` +
       `<div>MONSTROS: <span>× ${this.player.kills || 0}</span></div>` +
-      `<div>SCORE: <span>${this.player.score}</span></div>` +
+      `<div>SCORE BRUTO: <span>${this.player.score}</span></div>` +
+      `<div>DIFICULDADE: <span>${cfg.label} (×${mulLabel})</span></div>` +
+      `<div>SCORE FINAL: <span class="score-final">${finalScore}</span></div>` +
       `<div>VIDAS: <span>× ${this.player.lives}</span></div>`;
     document.getElementById('complete-lesson').innerHTML =
       '<strong>LIÇÃO DA FASE:</strong> ' + def.lesson;
     if (this.levelIdx + 1 > this.save.unlocked - 1) {
       this.save.unlocked = Math.max(this.save.unlocked, this.levelIdx + 2);
     }
-    this.save.best = Math.max(this.save.best, this.player.score);
+    this.save.best = Math.max(this.save.best, finalScore);
     this._saveProgress();
     hideAll();
     show('ov-complete');
@@ -4017,7 +4059,9 @@ class Game {
     // Som de vitória final — fanfarra ascendente ao abrir a tela de conquista.
     AUDIO.stopMusic && AUDIO.stopMusic();
     AUDIO.victory && AUDIO.victory();
-    this.save.best = Math.max(this.save.best, this.player.score);
+    const _victoryCfg = this.getDifficultyConfig();
+    const _victoryFinalScore = this.finalScore();
+    this.save.best = Math.max(this.save.best, _victoryFinalScore);
     this._saveProgress();
     const _currentUser = (typeof UserSystem !== 'undefined') ? UserSystem.getCurrentUser() : null;
     const _playerName = (_currentUser && _currentUser.playerName) ? _currentUser.playerName : 'JOGADOR';
@@ -4040,7 +4084,8 @@ class Game {
         '<div class="retention-grid">' +
           '<div class="retention-item"><span class="retention-label">FASES</span><span class="retention-value">' + finishedLevels + '/' + totalLevels + '</span></div>' +
           '<div class="retention-item"><span class="retention-label">RETENÇÃO</span><span class="retention-value">' + retention + '%</span></div>' +
-          '<div class="retention-item"><span class="retention-label">SCORE</span><span class="retention-value">' + this.player.score + '</span></div>' +
+          '<div class="retention-item"><span class="retention-label">SCORE</span><span class="retention-value">' + _victoryFinalScore + '</span></div>' +
+          '<div class="retention-item"><span class="retention-label">DIFICULDADE</span><span class="retention-value">' + _victoryCfg.label + ' ×' + _victoryCfg.scoreMul.toFixed(2).replace('.', ',') + '</span></div>' +
         '</div>' +
         '<div class="retention-note">Sweller · Mayer · Prensky · Rojo · teoria vivida, não apenas lida.</div>' +
       '</div>' +
@@ -4434,23 +4479,57 @@ class Game {
     const ctx = this.ctx;
     const p = this.player.power;
     const info = POWER_INFO[p] || POWER_INFO.focus;
-    // Mini card no canto inferior esquerdo do canvas
-    const x = 6, y = CANVAS_H - 36, w = 104, h = 30;
-    ctx.fillStyle = 'rgba(0,0,0,0.72)';
+    // Mini card no canto inferior esquerdo do canvas — agora mais legível:
+    // fundo mais opaco, contorno duplo (preto + cor do poder), texto com
+    // sombra preta pra contrastar com qualquer cenário atrás.
+    const x = 6, y = CANVAS_H - 42, w = 132, h = 36;
+
+    ctx.save();
+
+    // Fundo mais escuro pra texto sobressair
+    const bgGrad = ctx.createLinearGradient(x, y, x, y + h);
+    bgGrad.addColorStop(0, 'rgba(8, 4, 22, 0.95)');
+    bgGrad.addColorStop(1, 'rgba(0, 0, 0, 0.95)');
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(x, y, w, h);
+
+    // Contorno preto grosso + borda colorida
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
     ctx.strokeStyle = info.color;
     ctx.lineWidth = 1;
     ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+
     // Estrela colorida do poder
-    drawPowerStar(ctx, x + 14, y + 15, p, 8, performance.now() / 500);
-    // Texto
-    ctx.font = 'bold 8px "Press Start 2P", monospace';
-    ctx.fillStyle = info.color;
+    drawPowerStar(ctx, x + 14, y + 18, p, 9, performance.now() / 500);
+
+    // Helper local: imprime texto com contorno preto pra sempre ler
+    const drawOutlined = (txt, tx, ty, fill) => {
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#000';
+      ctx.strokeText(txt, tx, ty);
+      ctx.fillStyle = fill;
+      ctx.fillText(txt, tx, ty);
+    };
+
     ctx.textAlign = 'left';
-    ctx.fillText(info.short, x + 18, y + 11);
-    ctx.font = '10px "VT323", monospace';
-    ctx.fillStyle = '#fff';
-    ctx.fillText('Tiros: ' + this.player.powerAmmo + '  (C)', x + 18, y + 22);
+    ctx.textBaseline = 'alphabetic';
+    // Nome do poder — fonte maior e cor do poder com contorno preto
+    ctx.font = 'bold 9px "Press Start 2P", monospace';
+    drawOutlined(info.short, x + 26, y + 13, info.color);
+
+    // Linha 2: munição em branco grande com contorno
+    ctx.font = 'bold 13px "VT323", monospace';
+    drawOutlined('Tiros: ' + this.player.powerAmmo, x + 26, y + 27, '#ffffff');
+
+    // Tecla de uso (canto direito do card) — pra mobile mostra ★, desktop (C)
+    ctx.font = 'bold 8px "Press Start 2P", monospace';
+    ctx.textAlign = 'right';
+    const keyLabel = (typeof IS_TOUCH !== 'undefined' && IS_TOUCH) ? '★' : 'C';
+    drawOutlined(keyLabel, x + w - 6, y + h - 6, '#ffe14f');
+
+    ctx.restore();
   }
 
   _drawPowerPopup() {
@@ -5233,8 +5312,17 @@ function hide(id) {
   if (el) el.classList.add('hidden');
 }
 function hideAll() {
-  ['ov-menu','ov-select','ov-controls','ov-dialog','ov-princess','ov-pause','ov-gameover','ov-complete','ov-victory','ov-login','ov-register','ov-b42ad','ov-admin','ov-terms','ov-lgpd','ov-lang','ov-credits']
+  ['ov-menu','ov-select','ov-difficulty','ov-controls','ov-dialog','ov-princess','ov-pause','ov-gameover','ov-complete','ov-victory','ov-login','ov-register','ov-b42ad','ov-admin','ov-terms','ov-lgpd','ov-lang','ov-credits']
     .forEach(hide);
+}
+
+// Marca visualmente o card da dificuldade ativa no overlay de seleção.
+function markDifficultySelection(active) {
+  const cards = document.querySelectorAll('#ov-difficulty .diff-card');
+  cards.forEach(c => {
+    if (c.dataset.diff === active) c.classList.add('active');
+    else c.classList.remove('active');
+  });
 }
 
 function buildLevelGrid() {
@@ -5257,6 +5345,7 @@ function buildLevelGrid() {
         AUDIO.click();
         AUDIO.init();
         game.player = null;
+        game._startingLives = game.getDifficultyConfig().lives;
         game.loadLevel(i);
       });
     }
@@ -5380,13 +5469,14 @@ function boot() {
         if (result.ok) {
           errEl.classList.add('hidden');
           AUDIO.init();
-          AUDIO.click();
+          AUDIO.confirm();
           updateUserBadge();
           hideAll();
           show('ov-menu');
         } else {
           errEl.textContent = result.error;
           errEl.classList.remove('hidden');
+          AUDIO.error && AUDIO.error();
         }
       } finally {
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = '► ENTRAR'; }
@@ -5439,6 +5529,7 @@ function boot() {
       if (errors.length > 0) {
         errEl.innerHTML = errors.join('<br>');
         errEl.classList.remove('hidden');
+        AUDIO.error && AUDIO.error();
         return;
       }
 
@@ -5450,16 +5541,18 @@ function boot() {
         if (!reg.ok) {
           errEl.innerHTML = reg.error || 'Erro ao salvar conta.';
           errEl.classList.remove('hidden');
+          AUDIO.error && AUDIO.error();
           return;
         }
         const loginResult = await UserSystem.login(name, pass);
         if (!loginResult.ok) {
           errEl.innerHTML = 'Conta criada, mas falhou o login: ' + (loginResult.error || '');
           errEl.classList.remove('hidden');
+          AUDIO.error && AUDIO.error();
           return;
         }
         AUDIO.init();
-        AUDIO.click();
+        AUDIO.confirm();
         errEl.classList.add('hidden');
         updateUserBadge();
         hideAll();
@@ -5473,16 +5566,67 @@ function boot() {
   // Mostrar login ou menu na inicialização
   showAuthOrMenu();
 
+  // Sons de UI por categoria de ação. Mantém AUDIO.click() como fallback
+  // pra qualquer ação não mapeada explicitamente abaixo.
+  const UI_SFX = {
+    // Ações primárias / confirmação positiva
+    'start':       'confirm',
+    'diff-easy':   'confirm',
+    'diff-medium': 'confirm',
+    'diff-hard':   'confirm',
+    'next':        'confirm',
+    'retry':       'confirm',
+    'resume':      'confirm',
+    // Voltar / cancelar
+    'back':        'back',
+    'show-login':  'back',
+    'logout':      'back',
+    'close-modal': 'back',
+    'menu':        'back',
+    // Aberturas de overlay (telas menores)
+    'select':      'menuOpen',
+    'controls':    'menuOpen',
+    'admin':       'menuOpen',
+    'show-register': 'menuOpen',
+    'show-terms':  'menuOpen',
+    'show-lgpd':   'menuOpen',
+    'lang':        'menuOpen',
+    'guest':       'menuOpen',
+    // Pular cutscene / ad
+    'b42ad-skip':  'click',
+    'credits-skip':'click',
+    'restart':     'click',
+    'reset':       'click',
+    'admin-refresh':'click',
+  };
+  function playUiSfx(act) {
+    const fn = UI_SFX[act] || 'click';
+    if (typeof AUDIO[fn] === 'function') AUDIO[fn]();
+    else AUDIO.click();
+  }
+
   // Wire menu buttons
   document.querySelectorAll('[data-act]').forEach(btn => {
     btn.addEventListener('click', () => {
       const act = btn.dataset.act;
       AUDIO.init();
-      AUDIO.click();
+      playUiSfx(act);
       switch (act) {
         case 'start':
+          // Abre primeiro a seleção de dificuldade. A jornada começa só
+          // quando o jogador escolher um nível (FÁCIL / MÉDIO / DIFÍCIL).
+          hideAll(); show('ov-difficulty');
+          markDifficultySelection(game.difficulty);
+          break;
+        case 'diff-easy':
+        case 'diff-medium':
+        case 'diff-hard': {
+          const lvl = act === 'diff-easy' ? 'easy' : act === 'diff-hard' ? 'hard' : 'medium';
+          game.setDifficulty(lvl);
+          hideAll();
           game.startGame();
           break;
+        }
         case 'select':
           hideAll(); show('ov-select'); buildLevelGrid();
           break;
@@ -5567,7 +5711,7 @@ function boot() {
   const langConfirm = document.getElementById('lang-confirm');
   if (langConfirm) {
     langConfirm.addEventListener('click', () => {
-      AUDIO.init(); AUDIO.click();
+      AUDIO.init(); AUDIO.confirm();
       if (_langPick && window.I18N) I18N.setLang(_langPick);
       hideAll();
       // Após escolher idioma, vai pra login ou menu (depende do estado)
@@ -5579,6 +5723,53 @@ function boot() {
       }
     });
   }
+
+  // ============================================================
+  // SONS DE UI — fallback global pra qualquer botão/link/form que
+  // não foi coberto pelos handlers explícitos acima. Garante que
+  // TODA interação de menu/sistema toque um som.
+  // ============================================================
+  document.addEventListener('click', (e) => {
+    const target = e.target;
+    if (!target || !target.closest) return;
+    // Ignora cliques DENTRO do canvas (já tratados no jogo)
+    if (target.closest('#game') || target.closest('#touch-controls')) return;
+
+    // Já tem data-act? Seu handler dedicado já tocou som — não duplica.
+    const acted = target.closest('[data-act]');
+    if (acted) return;
+
+    AUDIO.init && AUDIO.init();
+    // Submit de formulários (login / cadastro): som de confirm
+    if (target.closest('button[type="submit"]')) {
+      AUDIO.confirm && AUDIO.confirm();
+      return;
+    }
+    // Card de seleção de fase
+    if (target.closest('.level-card:not(.locked)')) {
+      AUDIO.confirm && AUDIO.confirm();
+      return;
+    }
+    // Card de seleção de idioma
+    if (target.closest('.lang-item, .lang-card, [data-lang]')) {
+      AUDIO.toggle && AUDIO.toggle();
+      return;
+    }
+    // Link de ranking ou outros .mbtn (ex: <a class="mbtn">)
+    if (target.closest('a.mbtn, .mbtn')) {
+      AUDIO.click && AUDIO.click();
+      return;
+    }
+    // Checkbox de termos / LGPD
+    if (target.matches('input[type="checkbox"]')) {
+      AUDIO.toggle && AUDIO.toggle();
+      return;
+    }
+    // Botão genérico não mapeado
+    if (target.closest('button')) {
+      AUDIO.click && AUDIO.click();
+    }
+  }, true);
 
   // Botão de tela cheia (PC)
   const fsBtn = document.getElementById('fullscreen-btn');
